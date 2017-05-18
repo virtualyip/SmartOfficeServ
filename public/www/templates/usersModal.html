@@ -1,0 +1,124 @@
+
+<!-- Modal -->
+<div class="modal fade" id="usersManageModal" ng-controller = "UsersController" ng-init="init(modal.data)">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <button type="button" class="back" ng-click="pageback()">
+            <span class="glyphicon glyphicon-chevron-left"></span> 
+          </button>
+          <span ng-if="showingForm=='form_addUser'">
+            User Management
+          </span>
+          <span ng-if="showingForm=='form_editUser'">
+            <button class="btn btn-default" ng-click="showForm('form_addUser')">View All User</button> 
+            <span class="pull-right">
+              <button class="btn btn-primary" ng-click="editUserSubmit($event, _form)">Save</button>
+            </span>
+          </span>
+        </h4>
+      </div>
+      <!--end of modal-header-->
+
+      <div class="modal-body" id="model_body">
+
+        <div ng-if="showingForm=='form_addUser'">
+          <h5>Add New User</h5>
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="User's Email Address" ng-model="_form.new_email">
+            <span class="input-group-btn"><button ng-click="addUserSubmit($event)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+          </div>
+          <h5>Edit User</h5>
+          <div ng-if="!userlist.length" ng-click="getUserList()">
+            <div class="fullcenter">No users</div>
+          </div>
+          <div ng-repeat="user in userlist" ng-init="getUserList()">
+            <div ng-include="'../templates/user.html'"></div>
+          </div>
+        </div>
+        <!--end of form_addUser-->
+
+        <div ng-if="showingForm=='form_editUser'">
+          <div class="row">
+            <div class="col-xs-12" style="text-align: center;">
+              <div class="button" ngf-select="imageCrop($file, {type:'users', type_id:_form.email})" ngf-pattern="'image/*'">
+                <img class="img-xl" ng-src="{{getImage(_form.img, '../img/user.png')}}">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-envelope"></span></span>
+              <input class="form-control" type="text" placeholder="Email" ng-model="_form.email" disabled="disabled">
+              <span ng-click="_form.email = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+              <input class="form-control" type="text" placeholder="Nickname" ng-model="_form.nickname">
+              <span ng-click="_form.nickname = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+              <input class="form-control" type="text" placeholder="Surname" ng-model="_form.surname">
+              <span ng-click="_form.surname = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-credit-card"></span></span>
+              <input class="form-control" type="text" placeholder="employee_id" ng-model="_form.employee_id">
+              <span ng-click="_form.employee_id = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+              <input class="form-control" type="text" placeholder="Gender" ng-model="_form.gender">
+              <span ng-click="_form.gender = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-home"></span></span>
+              <input class="form-control" type="text" placeholder="Department" ng-model="_form.department">
+              <span ng-click="_form.department = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+              <input class="form-control" type="text" placeholder="Post Title" ng-model="_form.title">
+              <span ng-click="_form.title = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-map-marker"></span></span>
+              <input class="form-control" type="text" placeholder="Location/Seat" ng-model="_form.location">
+              <span ng-click="_form.location = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-phone-alt"></span></span>
+              <input class="form-control" type="text" placeholder="Phone" ng-model="_form.phone">
+              <span ng-click="_form.phone = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group" ng-if="_form.marker">
+              <span class="input-group-btn"><button class="btn btn-secondary glyphicon glyphicon-trash"></button></span>
+              <input class="form-control" type="button" value="Delete Map Marker" ng-click="deleteMarker($event)">
+            </div>
+            <!-- company map -->
+            <div ng-include="'../templates/map.html'"></div>
+            <!-- end od company map -->
+          </div>
+        </div>
+        <!--end of form_editUser-->
+
+      </div>
+      <!--end of modal-body-->
+
+      <div class="modal-footer">
+        <div class="button-group" role="group" ng-if="showingForm=='form_editUser'">
+          <button class="btn btn-warning" ng-click="deleteUserSubmit($event, _form)">Remove this User</button>
+          <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+        </div>
+        <div id="modal_msg"></div>
+      </div>
+      <!--end of modal-footer-->
+
+    </div>
+    <!-- /modal-content -->
+  </div>
+</div>
+<!--end of modal-->

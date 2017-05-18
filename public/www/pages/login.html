@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>HKU Dissertation - Smart office solution (U3526890)</title>
+
+  <!-- ionic/angularjs js -->
+  <script src="../lib/ionic/js/ionic.bundle.js"></script>
+
+  <script type="text/javascript" src="../lib/ngCordova/dist/ng-cordova.min.js"></script>
+  <script type="text/javascript" src="../lib/ng-cordova-oauth/dist/ng-cordova-oauth.min.js"></script>
+  <script type="text/javascript" src="../lib/ng-cordova-bluetoothle/ng-cordova-bluetoothle.js"></script>
+  <script type="text/javascript" src="../lib/js-md5/js/md5.min.js"></script>
+  <!-- cordova script (this will be a 404 during development) -->
+  <script src="../cordova.js"></script>
+
+  <!-- your app's js -->
+  <script src="../js/services.js"></script>
+
+  <!-- Bootstrap Core CSS -->
+  <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+  <!-- Custom Fonts -->
+  <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+  <!-- jQuery -->
+  <script src="../vendor/jquery/jquery.min.js"></script>
+
+  <!-- Bootstrap Core JavaScript -->
+  <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+  <script src="../js/gapi.js"></script>
+  <script>
+
+    var jsData;
+    function setJSData($scope){
+      jsData = $scope;
+    }
+
+    var app = angular.module('starter', ['ionic', 'starter.services', 'ngCordova', 'ngCordovaOauth']);
+
+    app.run(function($ionicPlatform) {
+      $ionicPlatform.ready(function() {
+        // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+        // for form inputs)
+        if(window.cordova && window.cordova.plugins.Keyboard) {
+          cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+        }
+        if(window.StatusBar) {
+          StatusBar.styleDefault();
+        }
+      });
+    })
+
+    app.controller('LoginController', function($scope, $cordovaOauth, ownApi, $ionicPlatform) {
+
+      setJSData($scope);
+    //$scope.ownApi = ownApi;
+    $scope.cordovaOauth = $cordovaOauth;
+
+    $scope.init = function(){
+      $scope.vm = {};
+      $scope.vm.loading = true;
+      $scope.vm.msg = "initiating system...";
+      $scope.vm.isError = false;
+      $scope.vm.user = null;
+      $scope.vm.googleUser = null;
+      $scope.vm.email = null;
+      $scope.vm.password = null;
+      $scope.vm.company = null;
+      $scope.vm.token = null;
+      $ionicPlatform.ready(function() {
+        //$scope.googleLogin();
+        $scope.vm.loading = false;
+        $('.panel').css('display','block');
+        $scope.vm.msg = null;
+        $scope.$apply();
+      });
+    }
+
+    $scope.googleLogin = function($event) {
+      $scope.vm.loading = true;
+      $scope.vm.googleAuth = null;
+
+      console.log(ionic.Platform.platform());
+      $scope.vm.msg = "Signing in google account...";
+
+      if(!window.cordova){
+        $scope.googleAuth = function(done, fail){
+          gapi.load('client', function(){
+            gapi.load('auth2', function(){
+              gapi.auth2.authorize({
+                'client_id': gapi_client.CLIENT_ID,
+                'scope': gapi_client.SCOPES.join(' '),
+                'immediate': false
+              }, done);
+            });
+          });
+        }
+      }else{
+        $scope.googleAuth = function(done, fail){
+          window.plugins.googleplus.login({
+            'scopes': gapi_client.SCOPES.join(' '),
+            'webClientId': '934310179470-gpg500orac4kp12f5g0tipg27rr51rqh.apps.googleusercontent.com',
+            'offline': true,
+          }, function (result) {
+            //$cordovaOauth.google(gapi_client.CLIENT_ID, gapi_client.SCOPES).then(function(result) {
+            //console.log("google login success");
+            //hideSpinner();
+            console.log("google oauth (cordova)", result);
+            var serverAuthCode = result.serverAuthCode;
+            $.post("https://www.googleapis.com/oauth2/v4/token",{
+              code:result.serverAuthCode,
+              client_id:gapi_client.CLIENT_ID,
+              client_secret:"nnThzYaBpKJXFR78kbeaUdKl",
+              redirect_uri:"http://localhost/callback",
+              grant_type:'authorization_code'
+            }).done(function(authResult){
+              done(authResult);
+            }).fail(function(msg){
+              fail;
+            });
+          }, fail);
+        }
+      }
+
+      $scope.googleAuth(function(authResult){
+        console.log('google auth token', authResult);
+        if (authResult && !authResult.error) {
+          window.localStorage.setItem("access_token", authResult.access_token);
+          gapi_client.access_token = authResult.access_token;
+          return gapi_client.plusApi.getProfile().done(function(googleUser){
+            console.log('googleUser', googleUser);
+            //$('#authorize-div').css('display','none');
+            $scope.vm.msg = "Signed in google account";
+            $scope.vm.googleUser = googleUser;
+            $scope.myLogin(googleUser);
+            $scope.$apply();
+          });
+        }else{
+          $scope.vm.loading = false;
+          $scope.vm.msg = "Failed to get google token";
+          $scope.$apply();
+        }
+      }, function(msg){
+        console.log(msg);
+        //$ionicLoading.hide();
+        //hideSpinner();
+        //$('#authorize-div').css('display','block');
+        $scope.vm.loading = false;
+        $scope.vm.msg = "Failed to sign in google account";
+        //$scope.$apply();
+      });
+    }
+
+    $scope.googleLogout = function(callback) {
+      $scope.vm.msg = "Signing out google account...";
+      if(ionic.Platform.platform() == 'win32'){
+        gapi_client.logout();
+      }
+    }
+
+    $scope.myLogin = function(googleUser){
+      $scope.vm.loading = true;
+      $scope.vm.msg = "Signing in smart office system...";
+
+      if(googleUser){
+        //console.log(googleUser);
+        $scope.vm.email = googleUser.emails[0].value;
+        $scope.vm.password = googleUser.id;
+        $scope.vm.surname = googleUser.name.familyName;
+        $scope.vm.nickname = googleUser.name.givenName;
+        $scope.vm.gender = googleUser.gender;
+        $scope.vm.img = googleUser.image.url;
+      }
+
+      ownApi.login({
+        email : $scope.vm.email,
+        password: $scope.vm.password,
+        surname: $scope.vm.surname,
+        nickname: $scope.vm.nickname,
+        gender: $scope.vm.gender,
+        img: $scope.vm.img,
+      }).then(function(data){
+        console.log('login result (check user company)', data);
+        if(data.error && data.company_id && data.company){
+          //joined a company
+          $scope.vm.msg = "Joining company...";
+          $scope.vm.company = data.company;
+          return ownApi.register({
+            company_id: data.company_id,
+            email: $scope.vm.email,
+            password:  $scope.vm.password,
+          });
+        }else{
+          return data;
+        }
+      }).then(function(data) {
+        console.log('login result (check auth)', data);
+        if(data && data.token){
+          $scope.vm.msg = "Signed in smart office system";
+          window.localStorage.setItem("token", data.token);
+          window.localStorage.setItem("profile", googleUser);
+          window.localStorage.setItem("serverTimeDiff", (Date.now() - new Date(data.date).getTime()) );
+          $scope.vm.user = $scope.vm.email;
+          $scope.vm.company = data.company;
+          $scope.vm.token = data.token;
+          $scope.vm.loading = false;
+          $scope.$apply();
+          //window.location.href = "index.html";
+        }else{
+          $scope.vm.msg = "Fail to sign in smart office system";
+          $scope.vm.loading = false;
+          return;
+        }
+      }).fail(function(data) {
+        console.log(data);
+        //hideSpinner();
+        if(data.error == 0 || data.status == 0){
+          //server error
+          $scope.vm.isError = true;
+          $scope.vm.msg = "Please retry later";
+          //$('input[name=email]').val(googleUser.emails[0].value);
+          //$('#retry').css('display','block');
+        }if(data.status == 400){
+          $scope.vm.msg = data.responseText;
+        }else{
+          // no assigned company
+          $scope.vm.company = null;
+          $scope.vm.isError = false;
+          $scope.vm.msg = "Please enter your company name";
+          $scope.vm.user = $scope.vm.email;
+          //$('input[name=email]').val(googleUser.emails[0].value);
+          //$scope.password = googleUser.id;
+          //$('#retry').css('display','none');
+          //$('#form').css('display','inline');
+          //$('#msg').html("Invalid Email or Password.");
+          //$('#msg').show();
+        }
+        $scope.vm.loading = false;
+        $scope.$apply();
+      });
+    }
+
+    $scope.formSubmit = function($event){
+      var company = $scope.vm.company;
+      var email = $scope.vm.email;
+      var password = $scope.vm.password;
+
+      if(company){
+        $event.target.disabled = true;
+
+        $scope.vm.msg = "Registering company...";
+        ownApi.register({
+          company: company,
+          email: email,
+          password:  password,
+        }).done(function(data){
+          //console.log(data);
+          if(data && data.token){
+            window.localStorage.setItem("token", data.token);
+            window.localStorage.setItem("serverTimeDiff", (Date.now() - new Date(data.date).getTime()) );
+            window.location.href = "index.html";
+            $scope.vm.user = $scope.vm.email;
+            $scope.vm.company = data.company;
+            $scope.vm.token = data.token;
+            $scope.vm.loading = false;
+            $scope.$apply();
+          }
+        }).fail(function() {
+          //server error
+          $scope.vm.isError = true;
+          $scope.vm.msg = "Please retry later";
+          //$('#msg').html("Please try again later.");
+          //$('#msg').css('display','block');
+          $event.target.disabled = false;
+          $scope.$apply();
+        });
+      }else{
+        $scope.vm.msg = "Please enter company name";
+      }
+    };
+
+    $scope.retry = function($event) {
+      //$('#retry').css('display','none');
+      $scope.vm.isError = false;
+      $scope.vm.msg = null;
+      $scope.init();
+    }
+  });
+
+</script>
+
+<style type="text/css">
+  body {
+    font-family: "proxima-nova",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size: 12px;
+  }
+
+  .background-image {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: -1;
+
+    display: block;
+    background: url('../img/wall4.jpg') 50% 50%;
+    width: 100%;
+    height: 800px;
+
+    -webkit-filter: blur(5px);
+    -moz-filter: blur(5px);
+    -o-filter: blur(5px);
+    -ms-filter: blur(5px);
+    filter: blur(5px);
+  }
+  .container {
+    left: 0;
+    right: 0;
+    z-index: 9999;
+  }
+  .input-group>input {border-left: 0px; border-right: 0px; background: #fff;}
+  .input-group-addon {background-color: #fff; color: #999; box-shadow: inset 0 1px 1px rgba(0,0,0,.075);}
+  .copyright { margin: 3px; color: #fff; background: rgba(0,0,0,0.8); padding: 3px 8px; z-index: 4;}
+</style>
+</head>
+
+<body>
+  <div class="background-image"></div>
+  <div class="container"  ng-app = "starter" ng-controller = "LoginController" ng-init="init()">
+    <div class="row">
+      <div class="col-xs-12 col-sm-4 col-sm-offset-4">
+
+        <div class="login-panel panel panel-default" style="display: none; text-align: center; min-width: 300px; max-width: 350px; margin-left: auto; margin-right: auto;">
+          <div style="background: rgba(234,123,83,1.0); color: #ffffff; margin: 3px; padding: 5px; font-size: 16px;">Welcome to Smart Office</div> 
+
+          <div class="panel-body" style="padding: 25px; padding-top: 0px;">
+            <div ng-if="!vm.user" ng-if="!vm.loading" id="authorize-div">
+
+              <div style="text-align: center;">
+                <img src="../img/icon.png" width="80px" height="80px">
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                  <input class="form-control" placeholder="E-mail" ng-model="vm.email" type="text">
+                  <span class="input-group-addon" ng-click="vm.email=null"><span class="glyphicon glyphicon-remove"></span></span>
+                </div>
+                <div class="input-group">
+                  <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                  <input class="form-control" placeholder="Password" ng-model="vm.password" type="password">
+                  <span class="input-group-addon" ng-click="vm.password=null"><span class="glyphicon glyphicon-remove"></span></span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <input ng-click="myLogin()" class="form-control btn btn-primary" type="button" value="Register or Sign in >">
+              </div>
+
+              <hr>
+              <!--Button for the user to click to initiate auth sequence -->
+              <button ng-click="googleLogin($event)">
+                <img src="../img/sign-in-with-google.png" style="height: 100%; width: 100%; max-height: 50px">
+              </button>
+
+              <div ng-if="vm.msg" style="color: red; padding: 10px;">{{vm.msg}}</div>
+            </div>
+
+            <div ng-if="vm.user" ng-if="!vm.loading" id="login-div">
+
+              <div style="text-align: center;">
+                <img src="../img/icon.png" width="80px" height="80px">
+              </div>
+
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                  <input class="form-control" placeholder="E-mail" value="{{vm.email}}" type="text" disabled="disabled">
+                </div>
+              </div>
+              <div id="retry" ng-if="vm.isError">
+                <input ng-click="retry($event)" class="form-control btn btn-warning" type="button" value="Retry">
+              </div>
+
+              <div ng-if="!vm.isError">
+
+                <div ng-if="!vm.token">
+                  <div class="form-group">
+                    <div class="input-group">
+                      <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+                      <input class="form-control" placeholder="Company Name" ng-model="vm.company" type="text">
+                      <span ng-click="vm.company = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                    </div>
+                  </div>
+                  <input type="hidden" ng-model="vm.googleUser.id">
+                  <div class="row">
+                    <div class="col-xs-6"><input ng-click="vm.user=null; vm.msg=null" class="form-control btn btn-default" type="button" value="Cancel"></div>
+                    <div class="col-xs-6"><input ng-click="formSubmit($event)" class="form-control btn btn-success" type="button" value="Register"></div>
+                  </div>
+                </div>
+
+                <div ng-if="vm.token">
+                  <div class="form-group">
+                    <div class="input-group">
+                      <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+                      <input class="form-control" placeholder="Company Name" value="{{vm.company}}" type="text" disabled="disabled">
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-6"><input ng-click="vm.user=null; vm.msg=null; vm.token=null;" class="form-control btn btn-default" type="button" value="Cancel"></div>
+                    <div class="col-xs-6"><input onclick="window.location.href = 'index.html'" class="form-control btn btn-success" type="button" value="Enter"></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <div class="panel-footer panel-default">
+            <div style="color: #003569; text-decoration: none; font-size: 10px; font-weight: bold;"><span> ABOUT </span> ｜ <span> NEWS </span> ｜ <span> REPORT </span> ｜ <span> TERMS </span> ｜ <span> CONTACTS </span> ｜ <span> LANGUAGE </span></div>
+          </div>
+          <div class="copyright">(c) HKU Dissertation 2017(u3526890)</div> 
+        </div>
+        <!-- end panel -->
+
+        <div class="col-xs- col-md-4 col-md-offset-2">
+        </div>
+
+        <div ng-if="vm.loading" id="spinner" style="text-align: center; padding: 10px">
+          <img src="../img/spinner.gif" width="10%" height="10%">
+        </div>
+
+      </div>
+    </div>
+
+  </body>
+
+  </html>

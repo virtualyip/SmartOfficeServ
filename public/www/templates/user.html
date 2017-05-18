@@ -1,0 +1,49 @@
+<div class="col-xs-12 no-padding">
+  <div class="panel panel-primary card" ng-class="user.online ? 'online':'offline'">
+    <div class="panel-heading" ng-click="editUser(user)">
+      <span class="glyphicon glyphicon-pencil"> {{user.email}} </span>
+      <span class="glyphicon" ng-class="user.markers.length >= 0 ? 'glyphicon-star' : 'glyphicon-star-empty'" style="float: right; font-size: 18px; color: #ff0;"></span>
+    </div>
+    <div class="panel-body" ng-click="showUser(user)">
+      <table><tr>
+        <td>
+          <img class="media-object img-l" ng-src="{{getImage(user.img, '../img/user.png')}}">
+        </td>
+        <td class="align-middle" width="100%">
+          <span ng-if="!user.showChat">
+            <h2 ng-if="!user.nickname && !user.surname && !user.department && !user.title && !user.location && !user.phone" class="text-center">No Info</h2>
+            <ul class="list-group small" ng-if="user.nickname || user.surname || user.department || user.title || user.location || user.phone">
+              <li class="list-group-item"><span class="glyphicon glyphicon-user"></span> {{value(user.nickname, '')}} {{value(user.surname, '')}}</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-home"></span> {{value(user.department, '------')}}</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-tag"></span> {{value(user.title, '------')}}</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-map-marker"></span> {{value(user.location, '------')}}</li>
+              <li class="list-group-item"><span class="glyphicon glyphicon-phone-alt"></span> {{value(user.phone, '------')}}</li>
+            </ul>
+          </span>
+
+          <span ng-if="user.showChat">
+            <div class="panel-body" style="padding: 5px; height: 165px; overflow: auto;">
+              <ul class="list-group small" ng-init="getChatList(user)">
+                <li class="list-group-item center-middle-text" ng-if="!user.chats.length">No Chat Messages</li>
+                <li class="list-group-item" ng-repeat="chat in user.chats | limitTo:5 | orderBy:'-created_at'">
+                  <span class="chat_message" style="word-break: break-all;">
+                    <span ng-if="chat.created_by!=profile.email" class="glyphicon glyphicon-chevron-left"></span>
+                    <span ng-if="chat.created_by==profile.email" class="glyphicon glyphicon-chevron-right"></span>
+                    {{chat.message}}
+                  </span>
+                  <span class="timestamp">@{{timeConvertByDateString(chat.created_at)}}</span>
+                </li>
+              </ul>
+            </div>
+          </span>
+        </td>
+      </tr></table>
+    </div>
+    <div class="panel-footer">
+      <div class="input-group">
+        <input class="form-control" type="text" placeholder="New Message" ng-model="user.new_chat" ng-focus="user.showChat=true" ng-blur="user.showChat=false">
+        <span class="input-group-btn"><button ng-click="addChatSubmit($event, user, user.new_chat)" class="btn btn-secondary glyphicon glyphicon-send"></button></span>
+      </div>
+    </div>
+  </div>
+</div>

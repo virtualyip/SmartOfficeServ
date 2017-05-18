@@ -1,0 +1,137 @@
+
+<!-- Modal -->
+<div class="modal fade" id="sensorsManageModal" ng-controller = "SensorsController" ng-init="init(modal.data)">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <button type="button" class="back" ng-click="pageback()">
+            <span class="glyphicon glyphicon-chevron-left"></span> 
+          </button>
+          <span ng-if="showingForm=='form_editSensor'">
+            Edit
+            <span class="pull-right">
+              <button class="btn btn-primary" ng-click="editSensorSubmit($event, _form)">Save</button>
+            </span>
+          </span>
+        </h4>
+      </div>
+      <!--end of modal-header-->
+
+      <div class="modal-body" id="model_body">
+
+        <div ng-if="showingForm=='form_addSensor'">
+          <h5>Add New sensor</h5>
+          <input class="form-control" type="button" value="Search New Devices" ng-click="searchSensor($event)">
+          <div class="row">
+            <div ng-repeat="sensor in sensorlist | filter:{sensor_id:'!'}">
+              <div ng-include="'../templates/sensor.html'"></div>
+            </div>
+          </div>
+          <!--
+          <div class="row">
+            <div class="col-lg-3 col-sm-6 col-xs-6" ng-repeat="device in devices | filter:{sensor_id:'!'}">
+              <div class="panel panel-primary" ng-class="sensor.data ? 'online':'offline'">
+                <div class="panel-heading">
+                  <div class="input-group">
+                    <input class="form-control" type="text" placeholder="Sensor Name or Description" ng-model="device.description">
+                    <span class="input-group-btn"><button ng-click="addSensorSubmit($event, device)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+                  </div>
+                </div>
+                <div class="panel-body" style="padding: 5px">
+                  <table><tr>
+                    <td>
+                      <img class="media-object img-l" ng-src="../img/404.jpg">
+                    </td>
+                    <td class="align-middle" width="100%">
+                      <h4 ng-if="!sensor.data" class="text-center">
+                        {{device.status}}
+                        <button ng-if="device.status=='Stopped'" class="btn btn-warning" ng-click="searchSesnor(device); $event.stopPropagation();">Connect</button>
+                      </h4>
+                      <ul class="list-group" ng-if="sensor.data" style="padding: 0px; margin: 0px">
+                        <li class="list-group-item" ng-repeat="(key,value) in sensor.data" style="padding: 2px 5px;">
+                          <span class="glyphicon glyphicon-plus"></span> {{key}}: {{value}}
+                        </li>
+                      </ul>
+                    </td>
+                  </tr></table>
+                </div>
+                <div class="panel-footer" style="padding: 5px">
+                  <ul class="list-group" style="padding: 0px; margin: 0px">
+                    <li class="list-group-item" style="padding: 2px 5px;"><span class="glyphicon glyphicon-plus"></span> Name: {{device.name}}</li>
+                    <li class="list-group-item" style="padding: 2px 5px;"><span class="glyphicon glyphicon-plus"></span> Address: {{device.address}}</li>
+                    <li class="list-group-item" style="padding: 2px 5px;"><span class="glyphicon glyphicon-plus"></span> RSSI: {{device.rssi}}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        -->
+            <!--
+            <!--
+            <div class="input-group">
+              <input class="form-control" type="text" placeholder="Sensor Type" ng-model="_form.type">
+              <span class="input-group-btn"><button ng-click="addSensorSubmit($event)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+            </div>
+          -->
+          <h5>Edit Sensor</h5>
+          <!--
+          <div class="list-group">
+            <button ng-repeat="sensor in sensorlist" ng-click="editSensor(sensor)" ng-if="sensor.sensor_id" class="list-group-item">
+              <span class="glyphicon glyphicon-pencil"></span> {{sensor.name}} 
+              <span style="font-size: 8px; color: #777"> - {{sensor.data}} </span>
+            </button>
+          </div>
+        -->
+        <div class="center-middle-text" ng-if="!sensorlist.length" ng-click="getSensorList()">
+          <div>No Sensor</div>
+        </div>
+        <div ng-repeat="sensor in sensorlist | filter:{sensor_id:'!!'}" ng-init="getSensorList()">
+          <div ng-include="'../templates/sensor.html'"></div>
+        </div>
+      </div>
+      <!--end of form_addSensor-->
+
+      <div ng-if="showingForm=='form_viewSensor'||showingForm=='form_editSensor'">
+        <div class="row">
+          <div class="col-xs-12" style="text-align: center;">
+            <div class="button" ngf-select="imageCrop($file, {type:'sensors', type_id:_form.sensor_id})" ngf-pattern="'image/*'">
+              <img class="img-xl" ng-src="{{getImage(_form.img, '../img/device.png')}}">
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <span class="input-group-addon"><span class="glyphicon glyphicon-scale"></span></span>
+          <input class="form-control" type="text" placeholder="Sensor Name or Description" ng-model="_form.description">
+          <span ng-click="_form.description = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+        </div>
+        <div ng-if="showingForm=='form_editSensor'">
+          <div class="row">
+            <div class="col-xs-3 col-sm-3 col-lg-5">
+            </div>
+          </div>
+        </div>
+        <!-- company map -->
+        <div ng-include="'../templates/map.html'"></div>
+        <!-- end od company map -->
+      </div>
+    </div>
+    <!--end of form_editSensor-->
+  </div>
+  <!--end of modal-body-->
+
+  <div class="modal-footer">
+    <div class="button-group" role="group" ng-if="showingForm=='form_editSensor'">
+      <button class="btn btn-warning" ng-click="deleteSensorSubmit($event, _form)">Remove this sensor</button>
+      <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+    </div>
+    <div id="modal_msg"></div>
+  </div>
+  <!--end of modal-footer-->
+
+</div>
+<!-- /modal-content -->
+</div>
+</div>
+<!--end of modal-->

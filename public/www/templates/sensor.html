@@ -1,0 +1,120 @@
+
+<div class="col-xs-12 no-padding" ng-if="sensor.name=='CC2650 SensorTag'">
+  <div class="panel panel-primary card" ng-class="sensor.online ? 'online':'offline'">
+    <!-- without sensor_id header -->
+    <div class="panel-heading" ng-if="!sensor.sensor_id">
+      <div class="input-group">
+        <input class="form-control" type="text" placeholder="Sensor Name or Description" ng-model="sensor.description">
+        <span class="input-group-btn"><button ng-click="addSensorSubmit($event, sensor)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+      </div>
+    </div>
+
+    <!-- with sensor_id header -->
+    <div class="panel-heading" ng-if="sensor.sensor_id" ng-click="editSensor(sensor)">
+      <span class="glyphicon glyphicon-pencil"> {{sensor.description}}</span>
+      <span class="glyphicon" ng-class="sensor.markers.length >= 0 ? 'glyphicon-star' : 'glyphicon-star-empty'" style="float: right; font-size: 18px; color: #ff0;"></span>
+    </div>
+
+    <div class="panel-body" ng-click="showSensor(sensor)">
+      <table><tr>
+        <td>
+          <img class="media-object img-l" ng-src="{{getImage(sensor.img, '../img/SensorTag-CC2650.png')}}">
+        </td>
+        <td class="align-middle" width="100%" ng-init="getSensorHistory(sensor)">
+          <div ng-if="sensor.chart.data.length>=sensor.history.length">
+            <canvas id="" class="chart chart-line" chart-data="[sensor.chart.data]" chart-labels="sensor.chart.labels" chart-options="sensor.chart.options" ng-style="{'height':sensor.chart.height, 'width': sensor.chart.width, 'padding': '0 10px'}" style="height: {{sensor.chart.height}}; width: {{sensor.chart.width}};" height="{{sensor.chart.height}}" width="{{sensor.chart.width}}">
+            </canvas>
+          </div>
+          <!--
+          <ul class="list-group small" ng-show="sensor.data">
+            <li class="list-group-item"><h4>{{sensor.name}}</h4></li>
+            <li class="list-group-item"><span class="glyphicon glyphicon-scale"></span> {{sensor.data.IR_TEMPERATURE.amb_temp.toFixed(2)}}/ {{sensor.data.IR_TEMPERATURE.obj_temp.toFixed(2)}} </li>
+            <li class="list-group-item"><span class="glyphicon glyphicon-scale"></span> {{sensor.data.OPTICAL.lux.toFixed(2)}} </li>
+            <li class="list-group-item"><span class="glyphicon glyphicon-scale"></span> {{sensor.data.HUMIDITY.hum.toFixed(2)}} </li>
+            <li class="list-group-item"><span class="glyphicon glyphicon-scale"></span> {{sensor.data.BAROMETRIC_PRESSURE.pressure.toFixed(2)}} </li>
+          </ul>
+        -->
+      </td>
+    </tr></table>
+  </div>
+
+  <!-- without sensor_id footer -->
+  <div class="panel-footer" ng-if="!sensor.sensor_id">
+    <ul class="list-group small">
+      <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> Name: {{sensor.name}}</li>
+      <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> Address: {{sensor.address}}</li>
+      <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> RSSI: {{sensor.rssi}}</li>
+    </ul>
+  </div>
+
+  <!-- with description footer -->
+  <div class="panel-footer" ng-if="sensor.sensor_id">
+    <span class="text-center" ng-click="chartRefresh(sensor)">
+      <span ng-if="sensor.status!='Stopped'">{{sensor.status}}</span>
+      <button ng-if="sensor.status=='Stopped'" ng-if="BleCentralEnabled" class="btn btn-warning" ng-click="connectSensor(sensor); $event.stopPropagation();">Connect</button>
+      <button class="btn" ng-class="{'btn-info':sensor.chart.type=='IR_TEMPERATURE'}" ng-click="sensor.chart.type='IR_TEMPERATURE';sensor.chart.sub_type='obj_temp';"><span class="glyphicon glyphicon-scale"></span></button>
+      <button class="btn" ng-class="{'btn-info':sensor.chart.type=='HUMIDITY'}" ng-click="sensor.chart.type='HUMIDITY';sensor.chart.sub_type='hum'"><span class="glyphicon glyphicon-scale"></span></button>
+      <button class="btn" ng-class="{'btn-info':sensor.chart.type=='BAROMETRIC_PRESSURE'}" ng-click="sensor.chart.type='BAROMETRIC_PRESSURE';sensor.chart.sub_type='press'"><span class="glyphicon glyphicon-scale"></span></button>
+      <button class="btn" ng-class="{'btn-info':sensor.chart.type=='OPTICAL'}" ng-click="sensor.chart.type='OPTICAL';sensor.chart.sub_type='lux'"><span class="glyphicon glyphicon-scale"></span></button>
+    </span>
+  </div>
+</div>
+</div>
+
+
+<div class="col-xs-12 no-padding" ng-if="sensor.name=='WeMo Switch'">
+  <div class="panel panel-primary card" ng-class="sensor.online ? 'online':'offline'">
+    <!-- without sensor_id header -->
+    <div class="panel-heading" ng-if="!sensor.sensor_id">
+      <div class="input-group">
+        <input class="form-control" type="text" placeholder="WeMo Switch Name or Description" ng-model="sensor.description">
+        <span class="input-group-btn"><button ng-click="addSensorSubmit($event, sensor)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+      </div>
+    </div>
+
+    <!-- with sensor_id header -->
+    <div class="panel-heading" ng-if="sensor.sensor_id" ng-click="editSensor(sensor)">
+      <span class="glyphicon glyphicon-pencil"> {{sensor.description}} </span>
+      <span class="glyphicon" ng-class="sensor.markers.length >= 0 ? 'glyphicon-star' : 'glyphicon-star-empty'" style="float: right; font-size: 18px; color: #ff0;"></span>
+    </div>
+
+    <div class="panel-body" ng-click="showSensor(sensor)">
+      <table><tr>
+        <td>
+          <img class="media-object img-l" ng-src="{{getImage(sensor.img, '../img/wemo-switch.jpg')}}">
+        </td>
+        <td class="align-middle" width="100%" ng-init="getSensorHistory(sensor)">
+          <span ng-if="sensor.history.length">
+            <h4> Switched {{JSON.parse(sensor.history[0].data).BinaryState=='1'?'On':'Off'}} </h4>
+            <h6> @ {{sensor.history[0].created_at}} </h6>
+            <h6> by {{sensor.history[0].created_by}} </h6>
+          </span>
+          <span ng-if="!sensor.history.length">
+            Please check the device status
+          </span>
+        </td>
+      </tr></table>
+    </div>
+
+    <!-- without sensor_id footer -->
+    <div class="panel-footer" ng-if="!sensor.sensor_id">
+      <ul class="list-group small">
+        <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> Name: {{sensor.name}}</li>
+        <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> Host: {{sensor.lib.host}}</li>
+        <li class="list-group-item"><span class="glyphicon glyphicon-plus"></span> UDN: {{sensor.lib.UDN}}</li>
+      </ul>
+    </div>
+
+    <!-- with description footer -->
+    <div class="panel-footer" ng-if="sensor.sensor_id">
+      <span class="text-center">
+        <button class="btn btn-warning" ng-if="UpnpEnabled && !sensor.data" ng-click="connectWeMo(sensor); $event.stopPropagation();">Retry</button>
+        <button class="btn btn-info" ng-click="callSensor(sensor, 'getStatus'); $event.stopPropagation();">Check Status</button>
+        <div class="btn-group" ng-if="sensor.data">
+          <button class="btn btn-success" ng-click="callSensor(sensor, 'switchOn'); $event.stopPropagation();">On</button>
+          <button class="btn btn-warning" ng-click="callSensor(sensor, 'switchOff'); $event.stopPropagation();">Off</button>
+        </div>
+      </span>
+    </div>
+  </div>
+</div>

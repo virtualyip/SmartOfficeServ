@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>HKU Dissertation - Smart office solution (U3526890)</title>
+
+  <!-- ionic/angularjs js -->
+  <script src="../lib/ionic/js/ionic.bundle.js"></script>
+
+  <script type="text/javascript" src="../lib/ngCordova/dist/ng-cordova.min.js"></script>
+  <script type="text/javascript" src="../lib/ng-cordova-oauth/dist/ng-cordova-oauth.min.js"></script>
+  <script type="text/javascript" src="../lib/ng-cordova-bluetoothle/ng-cordova-bluetoothle.js"></script>
+  <script type="text/javascript" src="../lib/js-md5/js/md5.min.js"></script>
+  <!-- cordova script (this will be a 404 during development) -->
+  <script src="../cordova.js"></script>
+
+  <!-- your app's js -->
+  <script src="../js/app.js"></script>
+  <script src="../js/controllers.js"></script>
+  <script src="../js/services.js"></script>
+
+  <script src="../js/CalendarController.js"></script>
+  <script src="../js/CompanyController.js"></script>
+  <script src="../js/ContactsController.js"></script>
+  <script src="../js/TasksController.js"></script>
+  <script src="../js/UsersController.js"></script>
+  <script src="../js/SensorsController.js"></script>
+  <script src="../js/AssetsController.js"></script>
+
+
+  <!-- jQuery -->
+  <script src="../lib/jquery/dist/jquery.min.js"></script>
+
+  <!-- Bootstrap Core CSS --><!-- Bootstrap Core JavaScript -->
+  <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+  <!-- Custom CSS --><!-- Custom Theme JavaScript -->
+  <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+  <script src="../dist/js/sb-admin-2.js"></script>
+
+  <!-- MetisMenu CSS --><!-- Metis Menu Plugin JavaScript -->
+  <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+  <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+  <!-- Custom Fonts -->
+  <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <!-- [Morris Charts JavaScript]>
+  <script src="../vendor/raphael/raphael.min.js"></script>
+  <script src="../vendor/morrisjs/morris.min.js"></script>
+  <script src="../data/morris-data.js"></script>
+  <![Morris Charts JavaScript]-->
+
+  <!-- ng drag and drop -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
+  <script src="../lib/angular-dragdrop/src/angular-dragdrop.min.js"></script>
+
+  <!-- ng-file-update -->
+  <script src="../vendor/ng-file-upload/ng-file-upload-shim.min.js"></script>
+  <script src="../vendor/ng-file-upload/ng-file-upload.min.js"></script>
+
+  <!--[jr crop]>
+  <link rel="stylesheet" href="../js/jr-crop.css"/>
+  <script src="../js/jr-crop.min.js"></script>
+  <![jr crop]-->
+
+  <!-- Annyang -->
+  <script src="../js/annyang.js"></script>
+
+  <!-- FullCalendar -->
+  <link rel="stylesheet" href="../lib/fullcalendar/dist/fullcalendar.css"/>
+  <!-- jquery, moment, and angular have to get included before fullcalendar -->
+  <script type="text/javascript" src="../lib/moment/min/moment.min.js"></script>
+  <script type="text/javascript" src="../lib/angular/angular.js"></script>
+  <script type="text/javascript" src="../lib/fullcalendar/dist/fullcalendar.min.js"></script>
+  <script type="text/javascript" src="../lib/fullcalendar/dist/gcal.js"></script>
+  <script type="text/javascript" src="../lib/angular-ui-calendar/src/calendar.js"></script>
+
+  <!-- ng-img-crop -->
+  <script src="../lib/ng-img-crop/compile/minified/ng-img-crop.js"></script>
+  <link rel="stylesheet" type="text/css" href="../lib/ng-img-crop/compile/minified/ng-img-crop.css">
+
+  <!-- angular-chart -->
+  <script src="../lib/chart.js/dist/Chart.min.js"></script>
+  <script src="../lib/angular-chart.js/dist/angular-chart.min.js"></script>
+
+  <!-- daterangepicker >
+  <link href="../vendor/daterangepicker/daterangepicker.css" rel="stylesheet">
+  <script src="../vendor/daterangepicker/daterangepicker.js"></script>
+  <!-->
+  <!-- angular-bootstrap-datetimepicker -->
+  <link rel="stylesheet" href="../lib/angular-bootstrap-datetimepicker/src/css/datetimepicker.css"/>
+  <script type="text/javascript" src="../lib/angular-bootstrap-datetimepicker/src/js/datetimepicker.js"></script>
+  <script type="text/javascript" src="../lib/angular-bootstrap-datetimepicker/src/js/datetimepicker.templates.js"></script>
+
+  <!-- mosquitto websocket --><!-- MQTT(mosquitto client) Server-->
+  <!--[unuse]>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <script type="text/javascript" src="../js/mqtt.js"></script>
+  <script> MQTTconnect(); </script>
+  <![unuse]-->
+
+  <!-- cc2650 sensortag && wemo switch function -->
+  <script type="text/javascript" src="../js/devices.js"></script>
+  <!-- google api -->
+  <script type="text/javascript" src="../js/gapi.js"></script>
+
+  <script type="text/javascript">
+    var jsData;
+    function setJSData($scope){
+      jsData = $scope;
+    }
+
+    $(document).ready(function(){
+      //$.getScript('../js/jsClock.js').then(function(){
+        //setClock(document.getElementById("clock"));
+      //})
+
+      $(window).bind("load resize", function() {
+        $('.floorplan').each(function() {
+          if($(this).height() > $( window ).height() * 0.6){
+            $(this).children('.map').css('height', $( window ).height() * 0.6 );
+            $(this).children('.map').css('width', $(this).width() * 0.6 );
+          }else{
+            $(this).children('.map').css('height', '');
+            $(this).children('.map').css('width', '');
+          }
+        });
+      });
+    });
+  </script>
+
+  <script src="../js/socket.io.min.js"></script>
+  <script>
+    function socket_online(){
+      socket.emit('online', window.localStorage.getItem("token"));
+    }
+    function socket_chat(to, message){
+      if(!message) return;
+      socket.emit('message', {
+        to: to,
+        type: 'chat',
+        message: message,
+      });
+    }
+    function socket_sensorUpdate(address, data){
+      if(!data) return;
+      socket.emit('sensor', {
+        address: address,
+        data: data,
+      });
+    }
+
+    function socket_sensorAction(sensor, action){
+      if(!action) return;
+      socket.emit('action', {
+        name: sensor.description,
+        address: sensor.address,
+        action: action,
+      });
+    }
+    function socket_checkin(user){
+      socket.emit('checkin', {
+        email: user.email,
+      });
+    }
+    function socket_emit(type, data){
+      if(!data) return;
+      if(data.to == null || data.type == null || data.message == null || !data.to.length ) return;
+      socket.emit(type, data);
+    }
+
+    var socket = io.connect("http://ec2-54-254-191-134.ap-southeast-1.compute.amazonaws.com:3000");
+    socket.on('connect', function(){
+      console.log('connected to the server');
+      socket_online();
+    });
+    socket.on('message', function(notification){
+      if(notification.type == 'online'){
+        console.log('online', notification.created_by, notification.message);
+        jsData.online_users = notification.data;
+        jsData.userlist.forEach(function(user){
+          user.online = false;
+          if(jsData.online_users.indexOf(user.email) >= 0){
+            user.online = true;
+          }
+        });
+        //jsData.updateMarker();
+      }
+      if(notification.type == 'offline'){
+        console.log('offline', notification.created_by, notification.message);
+        jsData.online_users = notification.data;
+        jsData.userlist.forEach(function(user){
+          user.online = false;
+          if(jsData.online_users.indexOf(user.email) >= 0){
+            user.online = true;
+          }
+        });
+        //jsData.updateMarker();
+      }
+      if(notification.type == 'sensor'){
+        console.log('sensor', notification.created_by, notification.message, notification.data);
+        var sensor = getDataFromKeyValue(jsData.sensorlist, 'address', notification.message);
+        if(sensor && notification.data){
+          sensor.data = JSON.parse(notification.data);
+          sensor.data.created_at = notification.created_at;
+          sensor.data.created_by = notification.created_by;
+          sensor.online = true;
+          if(sensor.history){
+            sensor.history.unshift(notification);
+            jsData.chartRefresh(sensor);
+          }
+        }
+      }
+      if(notification.type == 'sensorData'){
+        console.log('sensorData', notification);
+        leftJoin(jsData.sensorlist, notification.data, 'address');
+      }
+      if(notification.type == 'action'){
+        console.log('action', notification.created_by, notification);
+        var sensor = getDataFromKeyValue(jsData.sensorlist, 'address', notification.message);
+        if(sensor){
+          sensor.action[notification.data]();
+        }
+        jsData.getNotification();
+      }
+      if(notification.type == 'chat'){
+        console.log(notification);
+        var user = getDataFromKeyValue(jsData.userlist, 'email', notification.created_by);
+        if(user){
+          user.chats.unshift({created_at: notification.created_at, created_by: notification.created_by, message: notification.message, type: notification.type});
+        }
+        jsData.getNotification();
+      }
+    });
+    socket.on('invalid', function(data){
+      console.log(data)
+    });
+    socket.on('disconnect', function(online_users){
+      console.log('online_users',online_users);
+      jsData.online_users = online_users;
+    });
+    socket.on("connect_failed", function(){
+      console.log('connect_failed');
+    });
+    socket.on("reconnect_failed", function(){
+      console.log('reconnect_failed');
+    });
+    socket.on("error", function(){
+      console.log('error');
+    });
+    /*
+    $.getScript('https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.2/socket.io.min.js', function(){
+      var socket = io.connect("http://54.254.191.134:3000", { 'connect timeout': 5000 });
+      socket.on('connect', function(){
+          console.log('connected to the server');
+          socket.emit('set-token', '12345');
+        });
+      socket.on('notification', function(data){
+          console.log(data)
+        });
+    });
+    */
+  </script>
+
+  <script type="text/javascript">
+
+    angular.module('starter.controllers')
+    .controller('HomeController', function($scope, ownApi, $ionicPopup, $timeout, $cordovaCamera, $ionicPlatform, $cordovaBluetoothLE) {
+
+      $ionicPlatform.ready(function() {
+        //$scope.init();
+        console.log(ionic.Platform.platform());
+        jsData.platform = ionic.Platform.platform();
+        //$scope.googleLogin();
+        gapi_client.plusApi.getProfile().done(function(googleUser){
+          console.log('googleUser', googleUser);
+          $scope.googleUser = googleUser;
+        });
+
+        //if browser support
+        //$scope.config.AnnyangEnabled = true;
+        if(!window.cordova){
+        }
+        if(window.cordova){
+          $scope.cordovaBluetoothLE = $cordovaBluetoothLE;
+          $cordovaBluetoothLE.initialize().then(function(obj) {
+            console.log('initialize Result', obj.message);
+          }, function(obj) {
+            console.log(obj);
+          });
+          $scope.serviceDiscovery = serviceDiscovery;
+        }
+
+        $('#spinner').css('display','none');
+        $('#wrapper').css('display','block');
+      });
+
+      $scope.init = function(){
+        setJSData($scope);
+        $scope.isDebug = true;
+
+        $scope.config = {};
+        $scope.currentModal = []; //current opened modal seq
+        $scope.online_users = []; //current online users
+        $scope.online_sensors = []; //current connected sensors
+
+        $scope.dashboard = {
+          unread_emails: "---",
+          total_tasks: "---",
+          upcoming_events: "---",
+          active_user: "---"
+        }
+
+        $scope.sensorData = {
+          "ambientTemp":"---",
+          "objectTemp":"---",
+          "humidity":"---",
+          "pressure":"---",
+          "altitude":"---",
+          "accelX":"---","accelY":"---","accelZ":"---",
+          "gyroX":"---","gyroY":"---","gyroZ":"---",
+          "magX":"---","magY":"---","magZ":"---",
+          "light":"---"
+        }
+
+        //init user profile
+        $scope.profile = {};
+        $scope.getUserProfile();
+        $scope.socketIO();
+      }
+
+      $scope.socketIO = function(){
+
+      }
+
+      $scope.googleLogin = function(immediate) {
+        if(!window.cordova){
+          $scope.googleAuth = function(done, fail){
+            gapi.load('client', function(){
+              gapi.load('auth2', function(){
+                gapi.auth2.authorize({
+                  'client_id': gapi_client.CLIENT_ID,
+                  'scope': gapi_client.SCOPES.join(' '),
+                  'immediate': immediate
+                }, done);
+              });
+            });
+          }
+        }else{
+          $scope.googleAuth = function(done, fail){
+            window.plugins.googleplus.login({
+              'scopes': gapi_client.SCOPES.join(' '),
+              'webClientId': '934310179470-gpg500orac4kp12f5g0tipg27rr51rqh.apps.googleusercontent.com',
+              'offline': true,
+            }, function (result) {
+              console.log("google oauth (cordova)", result);
+              var serverAuthCode = result.serverAuthCode;
+              $.post("https://www.googleapis.com/oauth2/v4/token",{
+                code:result.serverAuthCode,
+                client_id:gapi_client.CLIENT_ID,
+                client_secret:"nnThzYaBpKJXFR78kbeaUdKl",
+                redirect_uri:"http://localhost/callback",
+                grant_type:'authorization_code'
+              }).done(function(authResult){
+                done(authResult);
+              }).fail(function(msg){
+                fail(msg);
+              });
+            }, fail(msg));
+          }
+        }
+
+        $scope.googleAuth(function(authResult){
+          console.log('google auth token', authResult);
+          if (authResult && !authResult.error) {
+            window.localStorage.setItem("access_token", authResult.access_token);
+            gapi_client.access_token = authResult.access_token;
+            return gapi_client.plusApi.getProfile().done(function(googleUser){
+              console.log('googleUser', googleUser);
+              $scope.googleUser = googleUser;
+              $scope.$apply();
+            });
+          }
+        }, function(msg){
+          console.log(msg);
+        });
+      }
+
+
+    //view data$
+    $scope.tokenRefresh = function (){
+      ownApi.user.refresh().done(function(data){
+        console.log('refresh',data);
+        if(data && data.token){
+          window.localStorage.setItem("token", data.token);
+          window.localStorage.setItem("serverTimeDiff", (Date.now() - new Date(data.date).getTime()) );
+          $scope.getUserProfile();
+          $scope.googleLogin(true);
+          socket_online();
+        }
+      });
+    }
+
+    $scope.logout = function(){
+      window.localStorage.setItem("access_token", null);
+      window.location.href = "login.html";
+    }
+
+    $scope.healthTimer = function(){
+      $scope.now = Date.now() - window.localStorage.getItem("serverTimeDiff");
+      if($scope.profile)
+        $scope.health = 100-($scope.now - new Date($scope.profile.last_active).getTime())/(120*60*10);
+      if($scope.health <= 0)
+        $scope.logout();
+      $timeout($scope.healthTimer, 1000);
+    }
+
+    $scope.getUnreadMessage = function(){
+      if(!$scope.unread_emails) $scope.unread_emails = [];
+      getUnreadMessage();
+    }
+
+    $scope.listThreads = function(){
+      if(!$scope.threadlists) $scope.threadlists = []; //email thread list
+      listThreads();
+    }
+
+    $scope.listUpcomingEvents = function(){
+      if(!$scope.events) $scope.events = [];
+      listUpcomingEvents();
+    }
+
+    $scope.listTasklists = function(){
+      if(!$scope.tasklists) $scope.tasklists = []; //task list
+      listTasklists();
+    }
+
+    $scope.getNotification = function(input){
+      if(!$scope.notifications) $scope.notifications = []; //notification list
+      ownApi.notification.list(input).done(function(data){
+        console.log('getNotification',data);
+        $scope.notifications = data;
+        $scope.$apply();
+      });
+    }
+    $scope.readNotification = function(){
+      ownApi.notification.read().done(function(data){
+        console.log('readNotification',data);
+        $scope.getUserProfile();
+      });
+    }
+
+    $scope.getUserProfile = function (){
+      ownApi.user.get().done(function(data){
+       console.log('profile',data);
+       $scope.profile = data;
+       $scope.updateMarker();
+       $scope.$apply();
+     });
+    }
+
+    $scope.getUserList = function (){
+      if(!$scope.userlist) $scope.userlist = []; //
+      ownApi.user.list().done(function(data){
+        console.log('userlist',data);
+        //$scope.userlist = data;
+        innerJoin($scope.userlist, data, 'email');
+        $scope.$apply();
+
+        $scope.dashboardUpdate();
+      });
+    }
+
+    $scope.getChatList = function (user){
+      ownApi.notification.list({
+        type: 'chat',
+        from_to: [[$scope.profile.email, user.email], [user.email, $scope.profile.email]],
+      }).done(function(data){
+        console.log('getChatList',data);
+        if(!data) data = [];
+        user.chats = data;
+        $scope.$apply();
+      });
+    }
+    $scope.addChatSubmit = function($event, user, message){
+      user.chats.unshift({created_at: moment(), created_by: jsData.profile.email, message: message, type: 'chat'});
+      socket_chat([user.email], message);
+      user.new_chat = '';
+    }
+
+
+    $scope.getSensorList = function (){
+      if(!$scope.sensorlist) $scope.sensorlist = []; //
+      ownApi.sensor.list().done(function(data){
+        console.log('sensor',data);
+        leftJoin($scope.sensorlist, data, 'address');
+
+        /*
+        if($scope.profile.role == 'admin'){
+          if(!$scope.BleCentralEnabled){
+            console.log("Enable the BleCentralEnabled");
+            $scope.BleCentralEnabled = true;
+          }
+          if(!$scope.UpnpEnabled){
+            console.log("Enable UPNP Search");
+            $scope.UpnpEnabled = true;
+          } 
+          //watching sensor value change
+          $scope.sensorlist.forEach(function(sensor){
+            if(!sensor.watching){
+              $scope.$watch(function(){return sensor.data}, function(newValue, oldValue) {
+                //console.log('newValue', sensor);
+                socket_sensorUpdate(sensor.address, newValue);
+              });
+              sensor.watching = true;
+            }
+          });
+        } 
+        */
+        $scope.$apply();
+      });
+    }
+    $scope.getSensorHistory = function (sensor){
+      if(!sensor.history) sensor.history = [];
+      ownApi.notification.list({
+        type: 'sensor',
+        message: sensor.address,
+      }).done(function(data_arr){
+        console.log('getSensorHistory',data_arr);
+        if(!data_arr) return;
+        innerJoin(sensor.history, data_arr, 'created_at');
+        $scope.chartRefresh(sensor);
+      });
+    }
+    $scope.chartRefresh = function(sensor){
+      if(sensor.history.length <= 1) return;
+      if(!sensor.chart){
+        sensor.chart = {};
+        sensor.chart.type = 'IR_TEMPERATURE';
+        sensor.chart.sub_type = 'amb_temp';
+      }
+      sensor.chart.labels = [];
+      sensor.chart.data = [];
+      sensor.chart.options = {
+        title: {
+          display: true,
+          fullWidth: true,
+          text: sensor.chart.type+' '+moment(sensor.history[sensor.history.length-1].created_at).format('DD/MM HH:mm')+" to "+moment(sensor.history[0].created_at).format('DD/MM HH:mm'),
+        },
+        scales: {
+          yAxes: [{
+            position: 'right',
+          }],
+          xAxes: [{
+            display: false,
+            //type: 'linear',
+          }]
+        }
+      };
+      sensor.chart.height = '110px !important';
+      sensor.chart.width = '100% !important';
+
+      sensor.history.forEach(function(data_obj){
+        var data = JSON.parse(data_obj.data);
+        sensor.chart.labels.unshift(data_obj.created_at);
+        sensor.chart.data.unshift({x:new Date(data_obj.created_at), y:data[sensor.chart.type][sensor.chart.sub_type]});
+      });
+      //$scope.$apply();
+    }
+
+
+    $scope.getAssetList = function (){
+      if(!$scope.assetlist) $scope.assetlist = []; //
+      ownApi.asset.list().done(function(data){
+        console.log('asset',data);
+        //$scope.assetlist = data;
+        innerJoin($scope.assetlist, data, 'asset_id');
+        $scope.assetlist.forEach(function(asset){
+          asset.online = true;
+          if(!asset.bookings) asset.bookings = [];
+          asset.bookings.forEach(function(booking){
+            if(new Date(booking.start) < new Date() && new Date(booking.end) > new Date()){
+              asset.online = false;
+            }
+          }.bind(asset));
+        });
+        $scope.$apply();
+      });
+    }
+    $scope.getMaps = function (){
+      if(!$scope.maps) $scope.maps = []; //
+      ownApi.map.list().done(function(data){
+        console.log('maps',data);
+        //$scope.maps = data;
+        innerJoin($scope.maps, data, 'map_id');
+        for(var m=0; m<$scope.maps.length; m++){
+          $scope.getMapMarker($scope.maps[m]);
+        }
+        $scope.$apply();
+      });
+    }
+    $scope.getMapMarker = function(map){
+      if(!map.markers) map.markers = []; //
+      ownApi.map.markers.get({
+        map_id: map.map_id
+      }).done(function(data){
+        console.log('mapMarkers', data);
+        //map.markers = data;
+        innerJoin(map.markers, data, 'marker_id');
+        $scope.updateMarker();
+        $scope.$apply();
+      });
+    }
+    $scope.getImage = function(path, def){
+      if(!path) return def;
+      return ownApi.image.get(path);
+    }
+
+    $scope.takePic = function() {
+      if(scope.platform == 'win32'){
+        return;
+      }
+      var options =   {
+        quality: 50,
+        allowEdit : false,
+        destinationType: Camera.DestinationType.DATA_URL,
+          sourceType: 0,      // 0:Photo Library, 1=Camera, 2=Saved Photo Album
+          encodingType: 0,     // 0=JPG 1=PNG
+          correctOrientation: true
+        };
+      // Take picture using device camera and retrieve image as base64-encoded string
+      $cordovaCamera.getPicture(options).then(function(imageData) {
+        //$scope.showToast("Image selected","short","center");
+        $scope.showModal('#imageCropModal', null);
+        return $scope.myImage="data:image/jpeg;base64," + imageData;
+      }, function(err) {
+      });
+    };
+
+    $scope.myImage='';
+    $scope.myImageForm={};
+    $scope.myCroppedImage='';
+    $scope.imageCrop = function(file, form){
+      $scope.myImageForm=form;
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        console.log('reader onload', evt);
+        $scope.$apply(function($scope){
+          $scope.myImage=evt.target.result;
+        });
+      };
+      reader.readAsDataURL(file);
+      $scope.showModal('#imageCropModal', null);
+    }
+
+    $scope.imageOnLoad = function(scope){
+      console.log('imageOnLoad', scope);
+      $scope.imageCropScope = scope;
+    }
+
+    $scope.imageUpload = function(data){
+      console.log('image upload', data.length);
+      if(data.length > 10000){
+        ownApi.image.upload({
+          img: data,
+          type: $scope.myImageForm.type,
+          type_id: $scope.myImageForm.type_id,
+        }).then(function (resp) {
+          if($scope.myImageForm.type == 'users'){
+            $scope.getUserList();
+          }
+          if($scope.myImageForm.type == 'sensors'){
+            $scope.getSensorList();
+          }
+          if($scope.myImageForm.type == 'assets'){
+            $scope.getAssetList();
+          }
+          if($scope.myImageForm.type == 'maps'){
+            $scope.getMaps();
+          }
+          $scope.closeModal();
+        });
+      }
+
+      /*
+      var fd=new FormData();
+      fd.append('img',file);
+      fd.append('type',type);
+      if(type == 'maps'){
+        fd.append('i',data);
+        ownApi.image.upload(fd).then(function (resp) {
+          $scope.getMap();
+        });
+      }
+      if(type == 'icons'){
+        fd.append('user_id',data);
+        ownApi.image.upload(fd).then(function (resp) {
+          $scope.getUserList();
+        });
+      }
+      */
+    }
+    /*
+    $scope.uploadMap = function (file, i) {
+      return console.log(file);
+      var fd=new FormData();
+      fd.append('img',file);
+      fd.append('type','maps');
+      fd.append('i',i);
+      //console.log(file);
+
+      ownApi.image.upload(fd).then(function (resp) {
+       $scope.getMap();
+     });
+    };
+    $scope.uploadIcon = function(file) {
+      return console.log(file);
+      var fd=new FormData();
+      fd.append('img',file);
+      fd.append('type','icons');
+      fd.append('i',1);
+
+      ownApi.image.upload(fd).then(function (resp) {
+        $scope.user.list();
+      });
+    }
+    */
+    //Map & Marker View Control on HomeController
+    $scope.openMap = function($event, map){
+      $scope.showModal('#companyManageModal', {form:'mapMarkers'});
+    }
+    $scope.onStartDrag = function(map, marker){
+      $scope.editMapMarker(map, marker);
+    }
+
+    $scope.onDrag = function($event){
+    }
+
+    $scope.onDrop = function($event){
+    }
+
+    $scope.editMapMarker = function(map, marker){
+      if(marker.subscribed){
+        ownApi.user.subscribe({
+          marker_id: marker.marker_id,
+          action: 'delete',
+        }).done(function(){
+          console.log('Marker unsubscribed');
+          $scope.getUserProfile();
+        });
+      }else{
+        ownApi.user.subscribe({
+          marker_id: marker.marker_id,
+          action: 'add',
+        }).done(function(){
+          console.log('marker subscribed');
+          $scope.getUserProfile();
+        });
+      }
+    }
+    $scope.nextMap = function(){
+      var index = findIndex($scope.maps, 'i', $scope.profile.map.i);
+      if(index+1 >= $scope.maps.length)
+        $scope.profile.map = $scope.maps[0];
+      else
+        $scope.profile.map = $scope.maps[index+1];
+    }
+    $scope.prevMap = function(){
+      var index = findIndex($scope.maps, 'i', $scope.profile.map.i);
+      if(index-1 < 0)
+        $scope.profile.map = $scope.maps[$scope.maps.length-1];
+      else
+        $scope.profile.map = $scope.maps[index-1];
+    }
+    $scope.getUnuseMap = function(){
+      for(var i=1; i<=4; i++){
+        var map = getDataFromKeyValue($scope.maps, 'i', i);
+        if(map == null || map.img == null){
+          return i; //unused index;
+        }
+      }
+      return null;
+    }
+    $scope.updateMarker = function(){
+      if(!$scope.maps) return;
+      $scope.maps.forEach(function(map) {
+        if(!map.markers) return;
+        map.markers.forEach(function(marker) {
+          if(!marker.marker_id) return;
+          if($scope.profile.subscribe && $scope.profile.subscribe.length){
+            if(marker.marker_id == $scope.profile.subscribe[$scope.profile.subscribe.length-1]){
+              $scope.profile.map = map;
+            }
+          }
+          $scope.markerRefresh(marker);
+        });
+      });
+      if(!$scope.profile.map){
+        $scope.profile.map = $scope.maps[0];
+      }
+    }
+    $scope.markerRefresh = function(marker){
+      if(!marker) return;
+
+      marker.left = (marker.px * 100)+'%';
+      marker.top = (marker.py * 100) +'%';
+      //marker.position = {'left':left, 'top':top};
+
+      marker.style = {};
+      /*
+      if($scope.profile.subscribe)
+        var i = $scope.profile.subscribe.indexOf(marker.marker_id);
+      if(i >= 0){
+        marker.subscribed = true;
+        marker.subscribedOrder = i;
+        marker.style.color = 'green'; 
+        marker.style.border = '#0f0 1px solid'; 
+      }else{
+        marker.subscribed = false;
+        marker.subscribedOrder = -1;
+        marker.style.color = 'red';
+        marker.style.border = '#900 1px solid';
+      }
+      */
+      marker.subscribed = false;
+      if($scope.profile.subscribe && $scope.profile.subscribe.indexOf(marker.marker_id) >= 0){
+        marker.subscribed = true;
+      }
+      //red border+white: subscribed
+      //yello border+white: subscribed's chlid
+      //yellow: selected/ focused
+      //white: user owner
+      //green: active user
+      //red: inactive user
+      //marker.class = { 'glyphicon' : true, 'glyphicon-user': marker.type == 'human', 'glyphicon-scale': marker.type == 'sensor', 'glyphicon-th-large': marker.type == 'asset'};
+      if(marker.type == 'human'){
+        var user = getDataFromKeyValue($scope.userlist, 'user_id', marker.type_id);
+        if(user != null) {
+          marker.data = user;
+          //marker.class = ['glyphicon', 'glyphicon-user']; 
+          marker.name = (user.nickname != null ? user.nickname : user.email); 
+          if(findIndex(user.markers, 'marker_id', marker.marker_id) == null) {
+            user.markers ? user.markers.push(marker) : user.markers = [];
+          }
+          marker.hasImg = false;
+          marker.style['background-image'] = 'url(../img/user.png)';
+          if(user.img) {
+            marker.hasImg = true;
+            marker.style['background-image'] = 'url('+$scope.getImage(user.img)+')';
+          }
+        }
+      }if(marker.type == 'sensor'){
+        var sensor = getDataFromKeyValue($scope.sensorlist, 'sensor_id', marker.type_id);
+        if(sensor != null) {
+          //marker.class = ['glyphicon', 'glyphicon-scale'];
+          marker.data = sensor;
+          marker.name = sensor.description;
+          //marker.content = "<div>" + 'sensor info' + "</div>";
+          if(findIndex(sensor.markers, 'marker_id', marker.marker_id) == null) {
+            sensor.markers ? sensor.markers.push(marker) : sensor.markers = [];
+          }
+          marker.hasImg = false;
+          marker.style['background-image'] = 'url(../img/device.png)';
+          if(sensor.img) {
+            marker.hasImg = true;
+            marker.style['background-image'] = 'url('+$scope.getImage(sensor.img)+')';
+          }
+        }
+      }if(marker.type == 'asset'){
+        var asset = getDataFromKeyValue($scope.assetlist, 'asset_id', marker.type_id);
+        if(asset != null) { 
+          //marker.class = ['glyphicon', 'glyphicon-th-large'];
+          marker.data = asset;
+          marker.name = asset.name;
+          //marker.info = '';
+          //marker.online = true;
+          //marker.content = "<div>" + 'asset info' + "</div>";
+          if(findIndex(asset.markers, 'marker_id', marker.marker_id) == null) {
+            asset.markers ? asset.markers.push(marker) : asset.markers = [];
+          }
+          marker.hasImg = false;
+          marker.style['background-image'] = 'url(../img/book.png)';
+          if(asset.img) {
+            marker.hasImg = true;
+            marker.style['background-image'] = 'url('+$scope.getImage(asset.img)+')';
+          }
+        }
+      }
+    }
+
+    //User View Control on HomeController
+    $scope.showUser = function(user){
+      $scope.showModal('#contactsManageModal',{form:'user', user: user});
+    }
+    $scope.editUser = function(user){
+      $scope.showModal('#usersManageModal',{form:'form_editUser', _form: user});
+    }
+
+    //Sensor View Control on HomeController
+    //...
+    $scope.connectSensor = function(sensor){
+      jsData.BleCentralController.connect(sensor);
+    }
+    $scope.connectWeMo = function(sensor){
+      jsData.UpnpController.connect(sensor);
+    }
+    $scope.callSensor = function(sensor, action){
+      socket_sensorAction(sensor, action);
+    }
+    $scope.showSensor = function(sensor){
+      $scope.editSensor(sensor);
+    }
+    $scope.editSensor = function(sensor){
+      $scope.showModal('#sensorsManageModal',{form:'form_editSensor', _form: sensor});
+    }
+    $scope.hasData = function(sensor){
+      if(sensor.data && sensor.data != null) 
+        return true;
+      return false;
+    }
+
+    //Asset View Control on HomeController
+    //...
+    $scope.getBookingList = function(asset){
+      ownApi.asset.booking.list({
+        asset_id: asset.asset_id
+      }).done(function(data){
+        //asset.bookings = data;
+        console.log('bookings', data);
+        if(!asset.bookings) asset.bookings = [];
+        innerJoin(asset.bookings, data, 'booking_id');
+        $scope.$apply();
+      });
+    }
+    $scope.showAsset = function(asset){
+      $scope.showModal('#assetsManageModal',{form:'form_editAsset', _form: asset});
+    }
+    $scope.editAsset = function(asset){
+      $scope.showModal('#assetsManageModal',{form:'form_editAsset', _form: asset});
+    }
+
+    //notification
+    $scope.isNew = function(notification){
+      if(!$scope.profile) return false;
+      if(notification.created_at > $scope.profile.last_read || $scope.profile.last_read == null){
+        notification.isNew = true;
+        return true;
+      }
+      notification.isNew = false;
+      return false;
+    }
+
+    //function
+    $scope.dashboardUpdate = function(){
+      if(!$scope.tasklists) return;
+      if(!$scope.unread_emails) return;
+      if(!$scope.userlist) return;
+      if(!$scope.events) return;
+
+      $scope.dashboard.total_tasks = 0;
+      for(var i=0; i<$scope.tasklists.length; i++){
+        if(!$scope.tasklists[i].tasks) return;
+        $scope.dashboard.total_tasks += $scope.tasklists[i].tasks.length;
+      }
+
+      if($scope.unread_emails.length >= 100){
+       $scope.dashboard.unread_emails = "99+";
+     }else{
+       $scope.dashboard.unread_emails = $scope.unread_emails.length;
+     }
+
+     $scope.dashboard.active_user = $scope.userlist.length;
+
+     $scope.dashboard.upcoming_events = $scope.events.length;
+
+     //console.log("dashboard", $scope.dashboard);
+   }
+   $scope.showModal = function(modal, data){
+    var modals = [
+    {url: '../templates/usersModal.html', name: "User Management", modal: '#usersManageModal'},
+    {url: '../templates/sensorsModal.html', name: "Sensor Management", modal: '#sensorsManageModal'},
+    {url: '../templates/assetsModal.html', name: "Asset Management", modal: '#assetsManageModal'},
+    {url: '../templates/calendarModal.html', name: "Calendar", modal: '#calendarManageModal'},
+    {url: '../templates/tasksModal.html', name: "Tasks", modal: '#tasksManageModal'},
+    {url: '../templates/companyModal.html', name: "Asset Management", modal: '#companyManageModal'},
+    {url: '../templates/companyModal.html', name: "Marker Management", modal: '#mapMarkerModal'},
+    {url: '../templates/contactModal.html', name: "Contacts", modal:'#contactsManageModal'},
+    {url: '../templates/notificationsModal.html', name: "Notifications", modal:'#notificationsModal'},
+    {url: '../templates/imageCropModal.html', name: "Image Crop", modal:'#imageCropModal'},
+    {url: '../templates/settingModal.html', name: "Settings", modal:'#settingModal'},
+    ];
+    if(findIndex(modals, 'modal', modal) == null){
+      return console.log("modal not found: "+ modal);
+    } 
+      //check if modal opened
+      if($(modal).hasClass('in') == false){
+        $scope.currentModal.unshift({url:modals[findIndex(modals, 'modal', modal)].url, id:modal, data:data});
+        return true;
+      }
+      console.log("modal already opened: "+ modal);
+      return false;
+      /*
+      */
+    }
+    $scope.modalLoaded = function(modal, fullsize){
+      console.log('modal loaded:' +modal);
+
+      $('.modal .modal-body').css('overflow-y', 'auto'); 
+      if(fullsize || fullsize == undefined){
+        $('.modal .modal-body').css('height', $(window).height() * 0.75);
+        $('.modal .modal-dialog').css('width', '95%');
+      }else{
+        $('.modal .modal-body').css('height', null);
+        $('.modal .modal-dialog').css('width', null);
+      }
+
+      //multiple modal: http://stackoverflow.com/questions/19305821/multiple-modals-overlay
+      var zIndex = 1040 + (10 * $('.modal:visible').length);
+      $(modal).modal({
+        backdrop: 'static',
+        keyboard: false,
+        show: true,
+      });
+      $(modal).css('z-index', zIndex);
+      setTimeout(function() {
+        $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+      }, 0);
+      $(document).on('hidden.bs.modal', '.modal', function () {
+        $('.modal:visible').length && $(document.body).addClass('modal-open');
+      });
+    }
+    $scope.closeModal = function(){
+      $($scope.currentModal[0].id).modal('hide');
+      $scope.currentModal.splice(0, 1);
+    }
+    $scope.value = function(val, def){
+      if(val == '' || val == undefined || val == null)
+        return def;
+      return val;
+    }
+    $scope.getDataFromKeyValue = function(array, json_key, key_value){
+      data = getDataFromKeyValue(array, json_key, key_value);
+      return data;
+    }
+
+    $scope.timeConvertByDateString = function(dateStr){
+      var timeStamp = new Date(dateStr);
+      var now = new Date(jsData.now),
+      secondsPast = (now.getTime() - timeStamp.getTime()) / 1000;
+      if(secondsPast <= 86400){
+        hour = timeStamp.getHours();
+        minute = timeStamp.getMinutes();
+        return hour + ":" + ("0"+minute).substr(1);
+      }
+      if(secondsPast > 86400){
+        day = timeStamp.getDate();
+        month = timeStamp.toDateString().match(/ [a-zA-Z]*/)[0].replace(" ","");
+        //year = timeStamp.getFullYear() == now.getFullYear() ? "" :  " "+timeStamp.getFullYear();
+        return day + " " + month;
+      }
+      return moment(timeStamp).format('DD/MM');
+    }
+  });
+</script>
+
+<style>
+  body {
+    font-family: "proxima-nova",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size: 12px;
+  }
+
+  .center-middle-text {text-align: center; vertical-align: middle; display: block; width: 100%; font-size: 32px; color: #999;}
+
+  .list-group.small {padding: 0px; margin: 0px !important;}
+  .list-group.small>.list-group-item {padding: 2px 5px !important; overflow: hidden;}
+
+  .myCarousel {max-width: 576px; margin: auto;}
+  .carousel-control {width: 8% !important;}
+
+  .map {position: relative; background-color: #ffffff; margin-bottom: 0px;} 
+  .map .floorplan { width: 100%; height: 100%; max-height:100%; max-width: 100%;opacity: 0.5; overflow: hidden;} 
+  .map .marker {position: absolute !important; top: 0; left: 0; margin-left: -25px; margin-top: -25px;}
+  .map .marker .marker-icon {padding: 15px; border-radius:30px; width: 50px; height: 50px;}
+  .map .marker .marker-icon.hasImg {background-size: 100%;}
+  .map .marker .marker-icon.noImg {background-size: 50%; background-position: 50%; background-repeat: no-repeat;}
+  .map .marker.online .marker-icon {opacity: 1; border: 1px #0f0 solid; color: red; background-color: rgba(0,255,0,0.5);}
+  .map .marker.offline .marker-icon {opacity: 0.75; border: 1px #f00 solid; color: green; background-color: rgba(255,255,255,0.5);}
+  .map .marker .marker-label {font-size: xx-small; text-align: center; margin-top: -10px; padding:0 3px; background: rgba(255,255,255,0.9); position: relative; white-space: nowrap; z-index: 3000; color: #777; border-radius: 5px; border: 1px #ccc solid; overflow: hidden; width: 50px;}
+  .map .marker.subscribed .marker-label {background: #5cb85c; color: #fff; border: 1px #ccc solid;}
+  .map .marker.unsubscribed .marker-label {background: #333; color: #fff; border: 1px #777 solid;}
+
+  .modal-body {background-color: #f0f0f0; background-image: url('../img/wall.jpg');}
+  .contact .namecard   {padding: 5px; border: 1px solid #bce8f1;}
+  .contact>.media-left   {padding: 0px !important;}
+  .contact .namecard .details {width: 80px; display: block; overflow: hidden; white-space: nowrap;}
+  .card {margin: 3px 0 !important;}
+  .card.online {border: #0f0 2px solid; overflow: hidden;}
+  .card.offline {border: #f00 2px solid; overflow: hidden;}
+  .card .panel-body {height: 120px; max-height: 120px; padding: 5px; overflow: hidden;}
+  .card .panel-footer {padding: 5px !important;}
+
+  .img-xl {width: 200px; height: 200px; background-color: #fff; padding: 10px; margin: 10px; border: 1px #bbb solid; border-radius: 10px}
+  .img-l {width: 100px; height: 100px; background-color: #fff; padding: 5px; margin: 5px; border: 1px #bbb solid; border-radius: 5px}
+  .img-s {width: 50px; height: 50px;}
+  .messages .table {width: 100%; table-layout: fixed; border-spacing: 0; white-space: nowrap; background: rgba(243,243,243,.85); margin-bottom: 0px !important;}
+  .messages .table .snippet {display: block; overflow: hidden;}
+  .messages .table .content {color: #777;}
+  .messages .table .unread { background: rgba(255,255,255,1.0) !important; font-weight: bold;}
+  .media-body.message {padding: 5px; border-radius: 6px; background-color: #fff}
+  .media-body.message .date {color: #777}
+
+  .notification {white-space: nowrap;}
+  .notification .unread {background: rgba(255,255,255,1.0) !important; font-weight: bold;}
+
+  .timestamp {color: #777; float: right;}
+
+  #health {position: fixed; top: 0; left: 0; z-index: 10000; width: 100%; padding: 10px;}
+  #spinner {position: fixed; top: 0; left: 0; z-index: 10000; width: 100%;}
+
+  .input-group>input {border-left: 0px; border-right: 0px;}
+  .input-group.date>input {background-color: #fff;}
+  .input-group-addon {background-color: #fff; color: #999; box-shadow: inset 0 1px 1px rgba(0,0,0,.075);}
+  .input-group-btn {background-color: #fff; color: #999; box-shadow: inset 0 1px 1px rgba(0,0,0,.075);}
+  .fc-scroller.fc-day-grid-container {height: auto !important;}
+  .fc-scroller.fc-time-grid-container {height: auto !important;}
+  .no-padding {padding: 0px !important;}
+  .square-panel {margin: 1px !important; border-radius: 0px !important;}
+
+</style>
+
+</head>
+
+<body ng-app = "starter" ng-controller = "HomeController as home" ng-init="init()">
+
+  <div id="spinner" style="text-align: center; padding: 50px 10px;">
+    <img src="../img/spinner.gif" width="10%" height="10%">
+    <h4>Loading..</h4>
+  </div>
+
+  <div id="wrapper" ng-class="{'behindModal':currentModal.length>0}" style="display: none">
+
+    <div ng-init="healthTimer()">
+      <button id="health" class="btn btn-xs btn-info" ng-if="health<50" ng-click="tokenRefresh()">
+        <div class="progress" style="margin-bottom: 0px">
+          <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" ng-style="{'width': health+'%'}">
+          </div>
+        </div>
+        <div class="alert alert-warning" role="alert" style="margin-bottom: 0px">
+          (!) Remember to take a rest for every 2 working hours. <span class="glyphicon glyphicon-refresh"></span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
+      <div class="navbar-header" style="width: 100%; background: rgba(234,123,83,1.0); color: #ffffff; position: fixed;">
+        <!--
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="fa fa-bar fa-fw"></span>
+        </button>
+      -->
+      <a class="navbar-brand" href="index.html" style="color: #fff">{{profile.company}}</a>
+
+      <button class="navbar-toggle" type="button" ng-click="showModal('#settingModal')" style="margin-right: 5px; display: block; background: #fff; color: #666;">
+        <i class="fa fa-gear fa-fw"></i> 
+      </button>
+      <!-- /.dropdown-user -->
+      <button type="button" class="navbar-toggle" ng-init="getNotification()" ng-click="showModal('#notificationsModal')" style="margin-right: 5px; position: relative; display: block; background: #fff; color: #666;">
+        <span ng-repeat="notification in notifications | filter:isNew as new_notifications"></span>
+        <span class="fa fa-bell fa-fw"></span>
+        <span ng-if="new_notifications.length>0" style="color: #fff; background: #f00; position: absolute; top: 0; right: -10px; width: 20px; text-align: center; border-radius: 10px;">{{new_notifications.length}}</span>
+      </button>
+
+      <span ng-if="platform != null">
+        <!-- BleCentralController -->
+        <span ng-if="config.BleCentralEnabled==true" ng-controller = "BleCentralController" ng-init="init(sensorlist, cordovaBluetoothLE)"></span>
+
+        <!-- UpnpController -->
+        <span ng-if="config.UpnpEnabled==true" ng-controller = "UpnpController" ng-init="init(sensorlist)"></span>
+
+        <!-- AnnyangController -->
+        <span ng-if="config.AnnyangEnabled==true" ng-controller = "AnnyangController" ng-init="init()">
+          <button class="navbar-toggle" type="button" style="margin-right: 5px; display: block; background: #fff; color: #666;">
+            <span ng-if="!annyang.listening" ng-click="annyang.start()"><i class="fa fa-microphone-slash fa-fw"></i> </span>
+            <span ng-if="annyang.listening" ng-click="annyang.abort()"><i class="fa fa-microphone fa-fw"></i> </span>
+          </button>
+        </span>
+      </span>
+    </div>
+    <!-- /.navbar-header -->
+
+
+    <!--<ul class="nav navbar-top-links navbar-right">-->
+    <!-- /.dropdown -->
+    <!-- /.dropdown -->
+    <!--</ul>-->
+    <!-- /.navbar-top-links -->
+
+    <!--
+    <div class="navbar-default sidebar" role="navigation">
+      <div class="sidebar-nav navbar-collapse">
+        <ul class="nav" id="side-menu">
+          <li class="sidebar-search">
+            <div class="input-group custom-search-form">
+              <input type="text" class="form-control" placeholder="Search...">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button">
+                  <i class="fa fa-search"></i>
+                </button>
+              </span>
+            </div>
+          </li>
+          <li><a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a></li>
+          <li><a href="communication.html"><i class="fa fa-bar-chart-o fa-fw"></i> Communication</a></li>
+          <li><a href="calendar.html"><i class="fa fa-table fa-fw"></i> Calendar</a></li>
+          <li><a href="tasks.html"><i class="fa fa-edit fa-fw"></i> Tasks List</a></li>
+          <li><a href="files.html"><i class="fa fa-file-word-o fa-fw"></i> Uploaded</a></li>
+          <li><a href="#"><i class="fa fa-sitemap fa-fw"></i> Personal Analyze <span class="fa arrow"></span></a>
+            <ul class="nav nav-second-level">
+              <li><a href="#">Report1</a></li>
+              <li><a href="#">Report2</a></li>
+              <li><a href="#">Report3</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- /.navbar-static-side -->
+  </nav>
+
+  <div id="page-wrapper">
+    <!--
+    <div id="authorize-div" style="display: none">
+      <span>Authorize access to Google API</span>
+      <button id="authorize-button" onclick="handleAuthClick(event)">
+        Authorize
+      </button>
+    </div>
+  -->
+
+  <div class="row">
+
+    <div class="col-xs-12 col-sm-6">
+
+      <div class="row" style="min-width: 300px">
+        <!-- company map -->
+        <div ng-include="'../templates/map.html'" ng-init="getMaps()"></div>
+        <!-- end od company map -->
+
+        <!-- Google login -->
+        <div class="col-xs-6 no-padding" ng-if="!googleUser" ng-click="googleLogin(false)">
+          <div class="panel panel-primary square-panel">
+            <div class="panel-heading">
+              <div class="row">
+                <div class="col-xs-3">
+                  <img src="../img/Google_plus.png" width="40px" height="40px">
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">Login</div>
+                  <!-- <div>Google</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- email -->
+        <div class="col-xs-6 no-padding" ng-if="googleUser" ng-init="getUnreadMessage()" ng-click="getUnreadMessage()">
+          <div class="panel panel-primary square-panel">
+            <div class="panel-heading" ng-click="showModal('#contactsManageModal',{form:'threadlists'})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-envelope fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{dashboard.unread_emails}}</div>
+                  <!-- <div>+Emails</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- events -->
+        <div class="col-xs-6 no-padding" ng-if="googleUser"  ng-init="listUpcomingEvents()" ng-click="listUpcomingEvents()">
+          <div class="panel panel-red square-panel">
+            <div class="panel-heading" ng-click="showModal('#calendarManageModal',{form:null})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-calendar fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{events.length}}</div>
+                  <!-- <div>+Events</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of events -->
+
+        <!-- task -->
+        <div class="col-xs-6 no-padding" ng-if="googleUser"  ng-init="listTasklists()" ng-click="listTasklists()">
+          <div class="panel panel-green square-panel">
+            <div class="panel-heading" ng-click="showModal('#tasksManageModal',{form:'form_tasklist'})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-briefcase fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{dashboard.total_tasks}}</div>
+                  <!-- <div>+Tasks</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- user -->
+        <div class="col-xs-6 no-padding" ng-init="getUserList()">
+          <div class="panel panel-yellow square-panel">
+            <div class="panel-heading" ng-click="showModal('#usersManageModal',{form:'form_addUser'})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-user fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{online_users.length}}/{{userlist.length}}</div>
+                  <!-- <div>Users</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- sensors -->
+        <div class="col-xs-6 no-padding" ng-init="getSensorList()">
+          <div class="panel panel-yellow square-panel">
+            <div class="panel-heading" ng-click="showModal('#sensorsManageModal',{form:'form_addSensor'})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-tachometer fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">
+                    <span ng-repeat='sensor in sensorlist | filter:hasData as online_sensors'></span>
+                    <span ng-repeat='sensor in sensorlist | filter:sensor_id as total_sensors'></span>
+                    {{online_sensors.length}}/{{total_sensors.length}}
+                  </div>
+                  <!-- <div>Devices</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- assets -->
+        <div class="col-xs-6 no-padding" ng-init="getAssetList()">
+          <div class="panel panel-yellow square-panel">
+            <div class="panel-heading" ng-click="showModal('#assetsManageModal',{form:'form_addAsset'})">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="fa fa-th-large fa-3x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{assetlist.length}}</div>
+                  <!-- <div>Assets</div> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end of assets -->
+      </div>
+      <!-- end of row -->
+    </div>
+
+    <div class="col-xs-12 col-sm-6">
+
+      <div class="row" style="min-width: 300px">
+        <div ng-repeat="map in maps">
+          <div ng-repeat="marker in map.markers | filter:{subscribed:true} | orderBy:'-subscribedOrder'">
+            <div ng-if="marker.type=='human'" ng-include="'../templates/user.html'" onload="user=getDataFromKeyValue(userlist, 'user_id', marker.type_id)"></div>
+            <div ng-if="marker.type=='sensor'" ng-include="'../templates/sensor.html'" onload="sensor=getDataFromKeyValue(sensorlist, 'sensor_id', marker.type_id)"></div>
+            <div ng-if="marker.type=='asset'" ng-include="'../templates/asset.html'" onload="asset=getDataFromKeyValue(assetlist, 'asset_id', marker.type_id)"></div>
+          </div> 
+        </div>
+      </div>
+      <!-- end of row -->
+
+      <div class="col-xs-12">
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "https://connect.facebook.net/zh_TW/sdk.js#xfbml=1&version=v2.8";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+        <!-- /.row -->
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="fb-comments" data-href="https://developers.facebook.com/docs/plugins/comments#configurator" data-numposts="1" data-mobile="true" data-width="500"></div>
+          </div>
+          <!-- /.col-lg-8 -->
+          <div class="col-lg-4">
+            <div class="fb-page" data-href="https://www.facebook.com/facebook" data-tabs="timeline" data-small-header="false" data-hide-cover="false" data-show-facepile="true" data-width="500"><blockquote cite="https://www.facebook.com/facebook" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/facebook">Facebook</a></blockquote></div>
+          </div>
+        </div>
+      </div>
+      <!-- /.row -->
+
+    </div>
+    
+  </div>
+  <!-- end of row -->
+
+</div>
+<!-- /#page-wrapper -->
+</div>
+<!-- /#wrapper -->
+
+<!-- Modals -->
+<div ng-repeat="modal in currentModal" ng-include="modal.url" onload="modalLoaded(modal.id)"></div>
+<!-- end of modals -->
+
+</body>
+
+</html>

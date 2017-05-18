@@ -1,0 +1,219 @@
+
+<div ng-controller = "ContactsController" ng-init="init(modal.data)">
+
+  <!-- modal -->
+  <div class="modal fade" id="contactsManageModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">
+            <button type="button" class="back" ng-click="pageback()">
+              <span class="glyphicon glyphicon-chevron-left"></span> 
+            </button>
+            <span ng-if="showingForm=='userlist'">
+              Contacts
+              <span class="pull-right">
+                <button class="btn btn-default" ng-click="showMailBox()">My MailBox</button> 
+                <button class="btn btn-default btn-info" ng-click="emailCompose(null, null, null)"> <span class="glyphicon glyphicon-envelope"></span> </button>
+              </span>
+            </span>
+            <span ng-if="showingForm=='user'">
+              <span class="pull-right">
+                <button class="btn btn-default" ng-click="showContacts()">All Contacts</button> 
+                <button class="btn btn-default btn-info" ng-click="emailCompose(null, null, user.email)"> <span class="glyphicon glyphicon-envelope"></span> </button>
+              </span>
+            </span>
+            <span ng-if="showingForm=='threadlists'">
+              My MailBox
+              <span class="pull-right">
+                <button class="btn btn-default" ng-click="showContacts()">All Contacts</button> 
+                <button class="btn btn-default btn-info" ng-click="emailCompose(null, null, user.email)"> <span class="glyphicon glyphicon-envelope"></span> </button>
+              </span>
+            </span>
+            <span ng-if="showingForm=='threadRead'">
+              Mail
+              <span class="pull-right">
+                <button class="btn btn-default btn-info" ng-click="emailCompose(null, null, user.email)"> <span class="glyphicon glyphicon-envelope"></span> </button>
+              </span>
+            </span>
+            <span ng-if="showingForm=='messageCompose'">
+              To: {{user.email}}
+            </span>
+          </h4>
+        </div>
+        <!--end of modal-header-->
+        <div class="modal-body" id="model_body">
+
+          <div ng-if="showingForm=='userlist'">
+            <div class="row" ng-init="getUserList()">
+              <div ng-if="!userlist.length" ng-click="getUserList()">
+                <div class="fullcenter">No users</div>
+              </div>
+              <div ng-repeat="user in userlist">
+                <div ng-include="'../templates/user.html'"></div>
+              </div>
+            </div>
+          </div>
+
+          <div ng-if="showingForm=='user'">
+           <table><tr>
+            <td>
+              <img class="media-object img-l" ng-src="{{getImage(user.img, '../img/user.png')}}">
+            </td>
+            <td class="align-middle" width="100%">
+              <h2 ng-if="!user.nickname && !user.surname && !user.department && !user.title && !user.location && !user.phone" class="text-center">No Info</h2>
+              <ul class="list-group small" ng-if="user.nickname || user.surname || user.department || user.title || user.location || user.phone">
+                <li class="list-group-item"><span class="glyphicon glyphicon-user"></span> {{value(user.nickname, '')}} {{value(user.surname, '')}}</li>
+                <li class="list-group-item"><span class="glyphicon glyphicon-home"></span> {{value(user.department, '------')}}</li>
+                <li class="list-group-item"><span class="glyphicon glyphicon-tag"></span> {{value(user.title, '------')}}</li>
+                <li class="list-group-item"><span class="glyphicon glyphicon-map-marker"></span> {{value(user.location, '------')}}</li>
+                <li class="list-group-item"><span class="glyphicon glyphicon-phone-alt"></span> {{value(user.phone, '------')}}</li>
+              </ul>
+            </td>
+          </tr></table>
+          <div class="row">
+            <!-- chat template -->
+            <div class="col-xs-12 col-sm-6 col-lg-3">
+              <div class="panel panel-info" ng-init="getChatList(user)">
+                <div class="panel-body" style="padding: 5px; height: 165px; overflow: auto;">
+                  <ul class="list-group small">
+                    <li class="list-group-item center-middle-text" ng-if="!user.chats.length">No Chat Messages</li>
+                    <li class="list-group-item" ng-repeat="chat in user.chats | limitTo:8 | orderBy:'-created_at'">
+                      <span class="chat_message" style="word-break: break-all;">
+                        <span ng-if="chat.created_by!=profile.email" class="glyphicon glyphicon-chevron-left"></span>
+                        <span ng-if="chat.created_by==profile.email" class="glyphicon glyphicon-chevron-right"></span>
+                        {{chat.message}}
+                      </span>
+                      <span class="timestamp">@{{timeConvertByDateString(chat.created_at)}}</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="panel-footer" style="padding: 5px">
+                  <div class="input-group">
+                    <input class="form-control" type="text" placeholder="New Message" ng-model="user.new_chat">
+                    <span class="input-group-btn"><button ng-click="addChatSubmit($event, user, user.new_chat)" class="btn btn-secondary glyphicon glyphicon-send"></button></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- chat template end -->
+          </div>
+          <div class="messages" ng-init="getMessages($event, user)">
+            <h4>Email Communications</h4>
+            <table class="table table-hover" width="100%">
+              <colgroup>
+              <col style="width: 20px">
+              <col style="">
+              <col style="width: 50px">
+            </colgroup>
+            <tbody>
+              <tr ng-if="!user.threadlists.length" ng-click="getMessages($event, user)">
+                <td><div class="fullcenter">No related emails</div></td>
+              </tr>
+              <tr ng-repeat="thread in user.threadlists" ng-click="emailRead(thread.messages)" ng-class="{'unread':thread.messages[0].labelIds.indexOf('UNREAD')>=0}">
+                <td>({{thread.messages.length}})</td>
+                <td><div class="snippet">{{getHeader(thread.messages[0].payload.headers, "Subject")}}<span class="content"> - {{unescape(thread.messages[0].snippet)}}</span></div></td>
+                <td>{{timeConvert(thread.messages[0].internalDate)}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div ng-if="showingForm=='threadlists'">
+        <div class="messages" ng-init="getMessages($event, null)">
+          <table class="table table-hover" width="100%">
+            <colgroup>
+            <col style="width: 20px">
+            <col style="">
+            <col style="width: 50px">
+          </colgroup>
+          <tbody>
+            <tr ng-if="!threadlists.length" ng-click="getMessages(user)">
+              <td><div class="fullcenter">No related emails</div></td>
+            </tr>
+            <tr ng-repeat="thread in threadlists" ng-click="emailRead(thread.messages)" ng-class="{'unread':thread.messages[0].labelIds.indexOf('UNREAD')>=0}">
+              <td>({{thread.messages.length}})</td>
+              <td><div class="snippet">{{getHeader(thread.messages[0].payload.headers, "Subject")}}<span class="content"> - {{unescape(thread.messages[0].snippet)}}</span></div></td>
+              <td>{{timeConvert(thread.messages[0].internalDate)}}</td>
+              <!--<td>{{thread.messages[0].labelIds}}</td>-->
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div ng-if="showingForm=='threadRead'">
+      <div  class="media" ng-repeat="message in _threads">
+        <div class="media-left">
+          <img class="media-object img-s" ng-src="{{!isSent(message)?getImg(getHeader(message.payload.headers, 'From')):'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}}">
+        </div>
+        <div class="media-body message">
+          <h4 class="media-heading">
+            <a href="https://mail.google.com/mail/u/0/#all/{{message.id}}" target="_blank">{{getHeader(message.payload.headers, "Subject")}}</a>
+          </h4>
+          <h6 ng-click="emailCompose(message, 'r')">{{unescape(message.snippet)}}</h6>
+          <h6 class="date mall">
+            {{timeConvert(message.internalDate)}} 
+            <span ng-if="isSent(message)">to {{getHeader(message.payload.headers, "To")}}</span>
+            <span ng-if="!isSent(message)">by {{getHeader(message.payload.headers, "From")}}</span>
+          </h6>
+        </div>
+        <div class="media-right">
+          <img class="media-object img-s" ng-src="{{isSent(message)?getImg(getHeader(message.payload.headers, 'From')):'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}}">
+        </div>
+      </div>
+    </div>
+
+    <div ng-if="showingForm=='messageCompose'">
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        <input class="form-control" type="text" placeholder="To:" ng-model="_compose.to">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        <input class="form-control" type="text" placeholder="Cc:" ng-model="_compose.cc">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        <input class="form-control" type="text" placeholder="Bcc:" ng-model="_compose.bcc">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        <input class="form-control" type="text" placeholder="Title" ng-model="_compose.title">
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        <textarea class="form-control" rows="15" ng-model="_compose.content"></textarea>
+      </div>
+      <input type="hidden" name="thread_id" ng-model="_compose.threadId">
+    </div>
+
+  </div>
+  <!--end of modal-body-->
+
+  <div class="modal-footer">
+    <div class="button-group" role="group" ng-if="showingForm=='user' || showingForm=='threadlists'">
+      <button class="btn btn-default" ng-click="page(-1)">Pre</button>
+      <button class="btn btn-default" ng-click="page(1)">Next</button>
+    </div>
+    <div class="button-group" role="group" ng-if="showingForm=='threadRead'">
+      <button class="btn btn-default" ng-click="emailCompose(_threads[0], 'r')">Reply</button>
+      <button class="btn btn-default" ng-click="emailCompose(_threads[0], 'ra')">Reply ALL</button>
+      <button class="btn btn-default" ng-click="emailCompose(_threads[0], 'fw')">Forward</button>
+    </div>
+    <div class="button-group" role="group" ng-if="showingForm=='messageCompose'">
+      <button type="button" class="btn btn-secondary" ng-click="closeModal()">Close</button>
+      <button type="button" ng-click="emailComposeSubmit($event, _compose)" class="btn btn-primary" id="modal_submit">Send</button>
+    </div>
+    <div id="modal_msg"></div>
+  </div>
+
+</div>
+</div>
+</div>
+<!-- end of Modal -->
+</div>

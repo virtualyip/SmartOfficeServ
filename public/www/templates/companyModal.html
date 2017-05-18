@@ -1,0 +1,148 @@
+
+<!-- modal -->
+<div class="modal fade" id="companyManageModal" ng-controller = "MapMarkerController" ng-init="init(modal.data)">
+ <div class="modal-dialog">
+   <div class="modal-content">
+     <div class="modal-header">
+       <h4 class="modal-title">
+         <button type="button" class="back" ng-click="pageback()">
+           <span class="glyphicon glyphicon-chevron-left"></span> 
+         </button>
+         <span id="modal_title">{{template.name}}</span>
+         <span class="dropdown">
+           <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+             Map Actions <span class="caret"></span>
+           </button>
+           <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+             <li role="separator" class="divider"></li>
+             <li><a ngf-select="imageCrop($file, {type:'maps', type_id:getUnuseMap()})">Add New Map</a></li>
+             <li role="separator" class="divider"></li>
+             <li><a ngf-select="imageCrop($file, {type:'maps', type_id:profile.map.i})">Update this Map</a></li>
+             <li role="separator" class="divider"></li>
+             <li><a ng-click="deleteMap(profile.map.i)">Delete this Map</a></li>
+           </ul>
+         </span>
+         <span class="pull-right" ng-if="showingForm=='addMapMarker'">
+          <button type="button" class="btn btn-primary" ng-if="showingForm=='addMapMarker'" ng-click="addMapMarkerSubmit($event, _mapMarker)">Save</button>
+        </span>
+        <span class="pull-right" ng-if="showingForm=='editMapMarker'">
+          <button type="button" class="btn btn-primary" ng-if="showingForm=='editMapMarker'" ng-click="editMapMarkerSubmit($event, _mapMarker)">Save</button>
+        </span>
+      </h4>
+    </div>
+    <!--end of modal-header-->
+    <div class="modal-body" id="model_body">
+
+      <div ng-if="showingForm=='mapMarkers'">
+        <!-- company map -->
+        <div ng-include="'../templates/map.html'"></div>
+        <!-- end od company map -->
+      </div>
+
+      <div ng-if="showingForm=='addMapMarker'">
+        <div class="input-group">
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Marker Type: {{_mapMarker.type}}
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+              <li><a ng-click="mapMarkerTypeChange('human')">Human</a></li>
+              <li><a ng-click="mapMarkerTypeChange('sensor')">Sensor</a></li>
+              <li><a ng-click="mapMarkerTypeChange('asset')">Room/Asset</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+              Marker {{_mapMarker.belong.description}} ({{_mapMarker.belong.name}})
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+              <li ng-repeat="item in _mapMarker.list"><a ng-click="mapMarkerBelongChange(item)">{{item.description}} ({{item.name}})</a></li>
+              <li role="separator" class="divider"></li>
+              <li><a ng-click="addAsset(_asset.type)">Add</a></li>
+            </ul>
+          </div>
+        </div>
+            <!--
+            <div class="input-group">
+              <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                  Only for: {{_mapMarker.for}}
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                  <li ng-repeat="user in userlist"><a ng-click="addMapMarkerFor(user)">{{user.email}}</a></li>
+                </ul>
+              </div>
+              <ul>
+                <li ng-repeat="for in _mapMarker.forlist">{{for.email}}</a></li>
+              </ul>
+            </div>
+          -->
+          <h4>Map Position</h4>
+          <div style="width: 300px; height: 300px; overflow: hidden; position: relative">
+            <img ng-src="{{getImage(_mapMarker.map.img)}}" ng-style="_mapMarker.style">
+            <span class="glyphicon" ng-class="{'glyphicon-user': _mapMarker.type == 'human', 'glyphicon-scale': _mapMarker.type == 'sensor', 'glyphicon-th-large': _mapMarker.type == 'asset'}" style="position: absolute; left: 50%; top: 50%; color: red; padding: 15px; margin: -25px; border: 1px solid #f00; border-radius: 30px; background-color: rgba(255,255,255,0.5); width: 50px; height: 50px; text-align: center;"></span>
+          </div>
+        </div>
+
+        <div ng-if="showingForm=='editMapMarker'">
+          <div class="input-group">
+            <div class="dropdown">
+              <label>Marker Type: </label>
+              <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                {{_mapMarker.type}}
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <li><a ng-click="mapMarkerTypeChange('human')">Human</a></li>
+                <li><a ng-click="mapMarkerTypeChange('sensor')">Sensor</a></li>
+                <li><a ng-click="mapMarkerTypeChange('asset')">Room/Asset</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="dropdown">
+              <label>Marker Name: </label>
+              <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                {{_mapMarker.belong.description}} ({{_mapMarker.belong.name}})
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <li ng-repeat="item in _mapMarker.list"><a ng-click="mapMarkerBelongChange(item)">{{item.description}} ({{item.name}})</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a ng-click="addAsset(_asset.type)">Add</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!--end of modal-body-->
+      <div class="modal-footer">
+        <div class="btn-group btn-group-justified" ng-if="showingForm=='mapMarkers'">
+          <div class="btn-group" role="group">
+            <button class="btn btn-default" ng-click="showModal('#usersManageModal')" type="button"><span class="glyphicon glyphicon-user"></span></button>
+          </div>
+          <div class="btn-group" role="group">
+            <button class="btn btn-default" ng-click="showModal('#sensorsManageModal')" type="button"><span class="glyphicon glyphicon-scale"></span></button>
+          </div>
+          <div class="btn-group" role="group">
+            <button class="btn btn-default" ng-click="showModal('#assetsManageModal')" type="button"><span class="glyphicon glyphicon-th-large"></span></button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" ng-if="showingForm=='addMapMarker'" ng-click="closeModal()">Close</button>
+        <button type="button" class="btn btn-primary" ng-if="showingForm=='editMapMarker'" ng-click="deleteMapMarkerSubmit($event, _mapMarker)">Delete this marker</button>
+        <button type="button" class="btn btn-secondary" ng-if="showingForm=='editMapMarker'" ng-click="closeModal()">Close</button>
+      </div>
+      <div id="modal_msg">{{msg}}</div>
+    </div>
+
+  </div>
+</div>
+</div>
+<!--end od modal -->

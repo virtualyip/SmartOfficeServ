@@ -1,0 +1,117 @@
+
+<div ng-controller = "CalendarController" ng-init="init(modal.data)">
+
+  <!-- modal -->
+  <div class="modal fade" id="calendarManageModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">
+            <button type="button" class="back" ng-click="pageback()">
+              <span class="glyphicon glyphicon-chevron-left"></span> 
+            </button>
+            <span id="modal_title">Calendar</span>
+            <span class="pull-right">
+              <button class="btn btn-default btn-info" ng-click="addEvent()"> <span class="glyphicon glyphicon-plus"></span> </button>
+            </span>
+          </h4>
+        </div>
+        <!--end of modal-header-->
+        <div class="modal-body">
+          <div ng-if="showingForm=='form_editEvent'">
+            <div class="form-group">
+              <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-list"></span></span>
+                <input class="form-control" type="text" placeholder="Event Title" name="event_title" ng-model="_event.summary">
+                <span ng-click="_event.summary = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+              </div>
+              <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+                <input class="form-control" type="text" placeholder="Event Description" name="event_desc" ng-model="_event.description">
+                <span ng-click="_event.description = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+              </div>
+              <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-map-marker"></span></span>
+                <input class="form-control" type="text" placeholder="Event Location" name="event_location" ng-model="_event.location">
+                <span ng-click="_event.location = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+              </div>
+            </div>
+
+            <div class="dropdown form-group">
+              <a class="dropdown-toggle" id="dropdownStart" role="button" data-toggle="dropdown" data-target="" href="">
+                <div class="input-group date">
+                  <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                  <input type="text" class="form-control" placeholder="Start Date" ng-model="_event.start" disabled="disabled">
+                  <span ng-click="_event.start = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                </div>
+              </a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <datetimepicker data-ng-model="_event.start"
+                data-datetimepicker-config="{ dropdownSelector: '#dropdownStart', renderOn: 'end-date-changed' }"
+                data-on-set-time="startDateOnSetTime()"
+                data-before-render="startDateBeforeRender($dates)"></datetimepicker>
+              </ul>
+            </div>
+            <div class="dropdown form-group">
+              <a class="dropdown-toggle" id="dropdownEnd" role="button" data-toggle="dropdown" data-target="" href="">
+                <div class="input-group date">
+                  <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                  <input type="text" class="form-control" placeholder="End Date" ng-model="_event.end" disabled="disabled">
+                  <span ng-click="_event.end = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                </div>
+              </a>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <datetimepicker data-ng-model="_event.end"
+                data-datetimepicker-config="{ dropdownSelector: '#dropdownEnd', renderOn: 'start-date-changed' }"
+                data-on-set-time="endDateOnSetTime()"
+                data-before-render="endDateBeforeRender($view, $dates, $leftDate, $upDate, $rightDate)"></datetimepicker>
+              </ul>
+            </div>
+            <!--
+            <div class="input-group">
+              <input class="form-control" type="text" placeholder="Event Time" name="event_daterange" ng-model="_event.daterange" ng-init="setDateRangePicker()">
+              <span class="input-group-addon">
+                <span class="glyphicon glyphicon-calendar"></span>
+              </span>
+            </div>
+          -->
+          <div id="event_updated">Updated at: {{timeconvert(_event.updated)}}</div>
+          <div id="event_reminider">Reminider: {{_event.reminders.useDefault}}</div>
+        </div>
+
+        <div ng-if="showingForm=='calendar'">
+          <div id="calendar" ui-calendar="uiConfig.calendar" ng-model="events"></div>
+        </div>
+
+      </div>
+      <!--end of modal-body-->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" ng-if="showingForm=='form_editEvent'" ng-click="eventDeleteSubmit($event, _event)">Delete event</button>
+        <button type="button" class="btn btn-secondary" ng-click="pageback()">Close</button>
+        <button type="button" class="btn btn-primary" ng-if="showingForm=='form_editEvent'" ng-click="eventSubmit($event, _event)">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- end of modal -->
+
+<!-- Modal -->
+<div class="modal fade" id="calendarModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title"><span id="modal_title">{{title}}</span></h4>
+      </div>
+      <div class="modal-footer">
+        <div id="modal_msg">{{msg}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end of modal -->
+
+</div>

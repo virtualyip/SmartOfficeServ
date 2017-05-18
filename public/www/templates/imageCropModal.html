@@ -1,0 +1,46 @@
+<style type="text/css">
+  .cropArea {
+    background: #E4E4E4;
+    overflow: hidden;
+    width:100%;
+    height:100%;
+  }
+</style>
+<!-- Modal -->
+<div class="modal fade" id="imageCropModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <button type="button" class="back" ng-click="closeModal()">
+            <span class="glyphicon glyphicon-chevron-left"></span> 
+          </button>
+          Image Crop
+          <span class="pull-right">
+            <button class="btn btn-primary" ng-click="imageUpload(imageCropScope.myCroppedImage)">Save</button>
+          </span>
+        </h4>
+      </div>
+      <!--end of modal-header-->
+
+      <div class="modal-body" id="model_body">
+        <div class="cropArea" ng-if="myImageForm.type=='maps'">
+          <img-crop image="myImage" result-image="myCroppedImage" area-type="square" on-load-done="imageOnLoad(this)" result-image-size="400"></img-crop>
+        </div>
+        <div class="cropArea" ng-if="myImageForm.type!='maps'">
+          <img-crop image="myImage" result-image="myCroppedImage" area-type="square" on-load-done="imageOnLoad(this)" result-image-size="200"></img-crop>
+        </div>
+      </div>
+      <!--end of modal-body-->
+
+      <div class="modal-footer">
+        <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+      </div>
+      <!--end of modal-footer-->
+
+    </div>
+    <!-- /modal-content -->
+  </div>
+</div>
+<!--end of modal-->

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>SB Admin 2 - Bootstrap Admin Theme</title>
+
+		<!-- Bootstrap Core CSS -->
+		<link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+		<!-- MetisMenu CSS -->
+		<link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+		<!-- Custom CSS -->
+		<link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+		<!-- Custom Fonts -->
+		<link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+		<!-- FullCalendar CSS -->
+		<link href="../vendor/fullcalendar-3.0.1/fullcalendar.css" rel="stylesheet">
+		<!-- daterangepicker CSS -->
+		<link href="../vendor/daterangepicker/daterangepicker.css" rel="stylesheet">
+
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+				<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+				<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+		<script type="text/javascript">
+					// Your Client ID can be retrieved from your project in the Google
+					// Developer Console, https://console.developers.google.com
+					var CLIENT_ID = '934310179470-gpg500orac4kp12f5g0tipg27rr51rqh.apps.googleusercontent.com';
+		
+					//var SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+					var SCOPES = ["https://www.googleapis.com/auth/calendar", 'https://www.googleapis.com/auth/tasks', 'https://mail.google.com/'];
+		
+					/**
+					 * Check if current user has authorized this application.
+					 */
+					function checkAuth() {
+						gapi.auth.authorize(
+							{
+								'client_id': CLIENT_ID,
+								'scope': SCOPES.join(' '),
+								'immediate': true
+							}, handleAuthResult);
+					}
+		
+					/**
+					 * Handle response from authorization server.
+					 *
+					 * @param {Object} authResult Authorization result.
+					 */
+					function handleAuthResult(authResult) {
+						var authorizeDiv = document.getElementById('authorize-div');
+						if (authResult && !authResult.error) {
+							// Hide auth UI, then load client library.
+							authorizeDiv.style.display = 'none';
+							loadCalendarApi();
+							loadTasksApi();
+						} else {
+							// Show auth UI, allowing the user to initiate authorization by
+							// clicking authorize button.
+							authorizeDiv.style.display = 'inline';
+						}
+					}
+		
+					/**
+					 * Initiate auth flow in response to user clicking authorize button.
+					 *
+					 * @param {Event} event Button click event.
+					 */
+					function handleAuthClick(event) {
+						gapi.auth.authorize(
+							{client_id: CLIENT_ID, scope: SCOPES, immediate: false},
+							handleAuthResult);
+						return false;
+					}
+		
+					/**
+					 * Load Google Calendar client library. List upcoming events
+					 * once client library is loaded.
+					 */
+					function loadCalendarApi() {
+						gapi.client.load('calendar', 'v3', listUpcomingEvents);
+					}
+		
+					/**
+					 * Print the summary and start datetime/date of the next ten events in
+					 * the authorized user's calendar. If no events are found an
+					 * appropriate message is printed.
+					 */
+					function listUpcomingEvents() {
+						var request = gapi.client.calendar.events.list({
+							'calendarId': 'primary',
+							'timeMin': (new Date()).toISOString(),
+							'showDeleted': false,
+							'singleEvents': true,
+							'maxResults': 10,
+							'orderBy': 'startTime'
+						});
+		
+						request.execute(function(resp) {
+							var events = resp.items;
+							var calendar = [];
+							
+							appendPre('Upcoming events:');
+		
+							if (events.length > 0) {
+							
+								for (i = 0; i < events.length; i++) {
+									var event = events[i];
+									var when = event.start.dateTime;
+									if (!when) {
+										when = event.start.date;
+									}
+									var til = event.end.dateTime;
+									if (!til) {
+										til = event.end.date;
+									}
+									appendPre(event.summary + ' (' + when + ')')
+									
+									var item = {};
+									item.title = event.summary;
+									item.start = when;
+									item.end = til;
+									item.desc = event.description;
+									item.location = event.location;
+									item.updated = event.updated;
+									item.calendarId = event.iCalUID;
+									item.eventId = event.id;
+									calendar[i] = item;
+								}
+							
+								console.log(i,events);
+								$('#calendar').fullCalendar( 'removeEventSources' );
+								$('#calendar').fullCalendar( 'addEventSource', {events : calendar});
+							
+							} else {
+								appendPre('No upcoming events found.');
+							}
+		
+						});
+					}
+		
+
+					/**
+					 * Load Google Tasks API client library.
+					 */
+					function loadTasksApi() {
+						gapi.client.load('tasks', 'v1', listTaskLists);
+					}
+					/**
+					 * Print task lists.
+					 */
+					function listTaskLists() {
+						var request = gapi.client.tasks.tasklists.list({
+								'maxResults': 10
+							});
+
+							request.execute(function(resp) {
+								appendPre('Task Lists:');
+								var taskLists = resp.items;
+								if (taskLists && taskLists.length > 0) {
+									for (var i = 0; i < taskLists.length; i++) {
+										var taskList = taskLists[i];
+										appendPre(taskList.title + ' (' + taskList.id + ')');
+										getTasklist(taskList.id);
+									}
+								} else {
+									appendPre('No task lists found.');
+								}
+							});
+					}
+
+					function getTasklist(taskListId){
+						var request = gapi.client.tasks.tasks.list({
+								'tasklist': taskListId,
+								'maxResults': 10,
+							});
+							request.execute(function(resp) {
+										console.log(resp);
+										appendPre('Tasks:');
+										var tasks = resp.items;
+										if (tasks && tasks.length > 0) {
+											for (var i = 0; i < tasks.length; i++) {
+												var task = tasks[i];
+												appendPre(task.title + ' (' + task.notes + ')/' + task.due);
+											}
+										} else {
+											appendPre('No tasks found.');
+										}
+							});
+					}
+					/**
+					 * Append a pre element to the body containing the given message
+					 * as its text node.
+					 *
+					 * @param {string} message Text to be placed in pre element.
+					 */
+					function appendPre(message) {
+						var pre = document.getElementById('output');
+						var textContent = document.createTextNode(message + '\n');
+						pre.appendChild(textContent);
+					}
+					
+		</script>
+
+		<script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
+
+</head>
+
+<body>
+
+		<div id="wrapper">
+
+				<!-- Navigation -->
+				<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+						<div class="navbar-header">
+								<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+										<span class="sr-only">Toggle navigation</span>
+										<span class="icon-bar"></span>
+										<span class="icon-bar"></span>
+										<span class="icon-bar"></span>
+								</button>
+								<a class="navbar-brand" href="index.html">SB Admin v2.0</a>
+						</div>
+						<!-- /.navbar-header -->
+
+						<div class="navbar-default sidebar" role="navigation">
+								<div class="sidebar-nav navbar-collapse">
+										<ul class="nav" id="side-menu">
+												<li class="sidebar-search">
+														<div class="input-group custom-search-form">
+																<input type="text" class="form-control" placeholder="Search...">
+																<span class="input-group-btn">
+																		<button class="btn btn-default" type="button">
+																				<i class="fa fa-search"></i>
+																		</button>
+																</span>
+														</div>
+														<!-- /input-group -->
+												</li>
+												<li>
+														<a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+												</li>
+												<li>
+														<a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>
+														<ul class="nav nav-second-level">
+																<li>
+																		<a href="flot.html">Flot Charts</a>
+																</li>
+																<li>
+																		<a href="morris.html">Morris.js Charts</a>
+																</li>
+														</ul>
+														<!-- /.nav-second-level -->
+												</li>
+												<li>
+														<a href="tables.html"><i class="fa fa-table fa-fw"></i> Tables</a>
+												</li>
+												<li>
+														<a href="forms.html"><i class="fa fa-edit fa-fw"></i> Forms</a>
+												</li>
+												<li>
+														<a href="#"><i class="fa fa-wrench fa-fw"></i> UI Elements<span class="fa arrow"></span></a>
+														<ul class="nav nav-second-level">
+																<li>
+																		<a href="panels-wells.html">Panels and Wells</a>
+																</li>
+																<li>
+																		<a href="buttons.html">Buttons</a>
+																</li>
+																<li>
+																		<a href="notifications.html">Notifications</a>
+																</li>
+																<li>
+																		<a href="typography.html">Typography</a>
+																</li>
+																<li>
+																		<a href="icons.html"> Icons</a>
+																</li>
+																<li>
+																		<a href="grid.html">Grid</a>
+																</li>
+														</ul>
+														<!-- /.nav-second-level -->
+												</li>
+												<li>
+														<a href="#"><i class="fa fa-sitemap fa-fw"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
+														<ul class="nav nav-second-level">
+																<li>
+																		<a href="#">Second Level Item</a>
+																</li>
+																<li>
+																		<a href="#">Second Level Item</a>
+																</li>
+																<li>
+																		<a href="#">Third Level <span class="fa arrow"></span></a>
+																		<ul class="nav nav-third-level">
+																				<li>
+																						<a href="#">Third Level Item</a>
+																				</li>
+																				<li>
+																						<a href="#">Third Level Item</a>
+																				</li>
+																				<li>
+																						<a href="#">Third Level Item</a>
+																				</li>
+																				<li>
+																						<a href="#">Third Level Item</a>
+																				</li>
+																		</ul>
+																		<!-- /.nav-third-level -->
+																</li>
+														</ul>
+														<!-- /.nav-second-level -->
+												</li>
+												<li class="active">
+														<a href="#"><i class="fa fa-files-o fa-fw"></i> Sample Pages<span class="fa arrow"></span></a>
+														<ul class="nav nav-second-level">
+																<li>
+																		<a class="active" href="blank.html">Blank Page</a>
+																</li>
+																<li>
+																		<a href="login.html">Login Page</a>
+																</li>
+														</ul>
+														<!-- /.nav-second-level -->
+												</li>
+										</ul>
+								</div>
+								<!-- /.sidebar-collapse -->
+						</div>
+						<!-- /.navbar-static-side -->
+				</nav>
+
+				<!-- Page Content -->
+				<div id="page-wrapper">
+						<div class="container-fluid">
+								<div class="row">
+										<div class="col-lg-12">
+												<h1 class="page-header">Calendar</h1>
+										</div>
+										<!-- /.col-lg-12 -->
+								</div>
+								<!-- /.row -->
+								<div class="row">
+										<div id="authorize-div" style="display: none">
+											<span>Authorize access to Google API</span>
+											<!--Button for the user to click to initiate auth sequence -->
+											<button id="authorize-button" onclick="handleAuthClick(event)">
+												Authorize
+											</button>
+										</div>
+										
+										<div id='calendar'></div>
+										<pre id="output"></pre>
+
+										<!-- Modal -->
+										<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+											<div class="modal-dialog" role="document">
+												<div class="modal-content">
+													<div class="modal-header">
+														<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+															<span aria-hidden="true">&times;</span>
+														</button>
+														<h4 class="modal-title" id="myModalLabel"><span id="modal_title">title</span></h4>
+													</div>
+													<div class="modal-body" id="model_body">
+														<div class="input-group">
+																<input class="form-control" type="text" placeholder="Event Title" name="event_title" value="">
+																<span class="input-group-addon">
+																		<span class="glyphicon glyphicon-calendar"></span>
+																</span>
+														</div>
+														<div class="input-group">
+																<input class="form-control" type="text" placeholder="Event Description" name="event_desc" value="">
+																<span class="input-group-addon">
+																		<span class="glyphicon glyphicon-calendar"></span>
+																</span>
+														</div>
+														<div class="input-group">
+																<input class="form-control" type="text" placeholder="Event Location" name="event_location" value="">
+																<span class="input-group-addon">
+																		<span class="glyphicon glyphicon-calendar"></span>
+																</span>
+														</div>
+														<div class="input-group">
+																<input class="form-control" type="text" placeholder="Event Time" name="event_daterange" value="">
+																<span class="input-group-addon">
+																		<span class="glyphicon glyphicon-calendar"></span>
+																</span>
+														</div>
+														<div id="event_updated">Updated at: ---</div>
+														<div id="event_reminider">Reminider: default</div>
+														<input type="hidden" name="calendarId" value="">
+														<input type="hidden" name="eventId" value="">
+														<div id="modal_msg"></div>
+													</div>
+													<div class="modal-footer">
+														<button type="button" class="btn btn-secondary" id="modal_delete">Delete event</button>
+														<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+														<button type="button" class="btn btn-primary" id="modal_submit">Save changes</button>
+													</div>
+												</div>
+											</div>
+										</div>
+								</div>
+								<!-- /.row -->
+						</div>
+						<!-- /.container-fluid -->
+				</div>
+				<!-- /#page-wrapper -->
+
+		</div>
+		<!-- /#wrapper -->
+
+		<!-- jQuery -->
+		<script src="../vendor/jquery/jquery.min.js"></script>
+
+		<!-- Bootstrap Core JavaScript -->
+		<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+		<!-- Metis Menu Plugin JavaScript -->
+		<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+		<!-- Custom Theme JavaScript -->
+		<script src="../dist/js/sb-admin-2.js"></script>
+
+		<script src="../vendor/fullcalendar-3.0.1/lib/moment.min.js"></script>
+
+		<script src="../vendor/fullcalendar-3.0.1/fullcalendar.js"></script>
+
+		<script src="../vendor/daterangepicker/daterangepicker.js"></script>
+
+		<script type="text/javascript">
+				$(document).ready(function(){
+						$('#calendar').fullCalendar({
+								 weekends: true,
+								 header: {
+										 left: 'prev,next today',
+										 center: 'title',
+										 right: 'month,agendaWeek,agendaDay'
+								 },
+								 editable: true,
+								 eventLimit: true, // allow "more" link when too many events
+								 eventClick: function(calEvent, jsEvent, view) {
+
+										console.log('calEvent',calEvent);
+
+										$('#modal_title').html("Edit event");
+										$('input[name="event_title"]').val(calEvent.title);
+										$('input[name="event_location"]').val(calEvent.location);
+										$('input[name="event_desc"]').val(calEvent.desc);
+										$('input[name="event_daterange"]').data('daterangepicker').setStartDate(calEvent.start.format('YYYY-MM-DD hh:mm A'));
+										if(calEvent.end == null){
+												$('input[name="event_daterange"]').data('daterangepicker').setEndDate(calEvent.start.format('YYYY-MM-DD hh:mm A'));
+										}else{
+												$('input[name="event_daterange"]').data('daterangepicker').setEndDate(calEvent.end.format('YYYY-MM-DD hh:mm A'));
+										}
+										$('#event_updated').show();
+										$('#event_updated').val(calEvent.updated);
+										$('input[name="eventId"]').val(calEvent.eventId);
+										$('input[name="calendarId"]').val(calEvent.calendarId);
+										$('#myModal').modal('show');
+								 },
+								 dayClick: function(date, jsEvent, view) {
+										console.log('Clicked on: ' + date.format());
+
+										$('#modal_title').html("Add new event");
+										$('input[name="event_title"]').val('');
+										$('input[name="event_location"]').val('');
+										$('input[name="event_desc"]').val('');
+										$('input[name="event_daterange"]').data('daterangepicker').setStartDate(date.format());
+										$('input[name="event_daterange"]').data('daterangepicker').setEndDate(date.format());
+										$('#event_updated').hide();
+										$('input[name="eventId"]').val('');
+										$('input[name="calendarId"]').val('');
+										$('#myModal').modal('show');
+								}
+						});
+
+						$(function() {
+								$('input[name="event_daterange"]').daterangepicker({
+										timePicker: true,
+										timePickerIncrement: 5,
+										timePicker24Hour: true,
+										locale: {
+												format: 'YYYY-MM-DD hh:mm A'
+										}
+								});
+						});
+
+						$('#modal_submit').click(function(){
+								$('#modal_msg').html("");
+
+								if($('input[name="event_title"]').val() != ''){
+										var event = {
+											'summary': $('input[name="event_title"]').val(),
+											'location': $('input[name="event_location"]').val(),
+											'description': $('input[name="event_desc"]').val(),
+											'start': {
+												'dateTime': $('input[name="event_daterange"]').data('daterangepicker').startDate.format("YYYY-MM-DDTHH:mm:ssZ")
+											},
+											'end': {
+												'dateTime': $('input[name="event_daterange"]').data('daterangepicker').endDate.format("YYYY-MM-DDTHH:mm:ssZ")
+											},
+										};
+
+										console.log(event);
+
+										if($('input[name="eventId"]').val() == '' || $('input[name="calendarId"]').val() == ''){
+												//add new event
+												//insertEvent(event);
+												var request = gapi.client.calendar.events.insert({
+													'calendarId': 'primary',
+													'resource': event
+												});
+										}else{
+												//edit event
+												var request = gapi.client.calendar.events.update({
+													'eventId' : $('input[name="eventId"]').val(),
+													'calendarId' : "primary",
+													'resource': event
+												});
+										}
+										$('#modal_submit').prop('disabled', true);
+										request.execute(function(event) {
+											appendPre('Event updated: ' + event.htmlLink);
+											listUpcomingEvents();
+											$('#myModal').modal('hide');
+										});
+										$('#modal_submit').prop('disabled', false);
+								}else{
+										$('#modal_msg').html("Please enter event title");
+								}
+						});
+				});
+		
+				$('#modal_delete').click(function(){
+						$('#modal_msg').html("");       
+						if($('input[name="event_title"]').val() == ''){
+								//delete event
+								var request = gapi.client.calendar.events.delete({
+									'eventId' : $('input[name="eventId"]').val(),
+									'calendarId' : "primary"
+								});
+								$('#modal_delete').prop('disabled', true);
+								request.execute(function(event) {
+									appendPre('Event deleted: ' + event.htmlLink);
+									listUpcomingEvents();
+									$('#myModal').modal('hide');
+								});
+								$('#modal_delete').prop('disabled', false);
+						}else{
+								$('#modal_msg').html("Clear event title first to delete this event");
+						}
+				});
+		</script>
+</body>
+
+</html>

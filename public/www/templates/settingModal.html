@@ -1,0 +1,81 @@
+
+
+<!-- Modal -->
+<div class="modal fade" id="settingModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <button type="button" class="back" ng-click="closeModal()">
+            <span class="glyphicon glyphicon-chevron-left"></span> 
+          </button>
+          Settings
+        </h4>
+      </div>
+      <!--end of modal-header-->
+
+      <div class="modal-body" id="model_body">
+        <h4><i class="fa fa-user fa-fw"></i> Info </h4>
+        <div class="list-group">
+          <button type="button" class="list-group-item" ng-click="editUser(profile)">
+            <span class="glyphicon glyphicon-pencil"> {{profile.email}}</span>
+          </button>
+          <button type="button" class="list-group-item" ng-click="">
+            <span class="glyphicon glyphicon-pencil"> {{profile.company}}</span>
+          </button>
+          <button type="button" class="list-group-item">
+            <i class="fa fa-sign-in fa-fw"></i> Last login: {{profile.last_login}}</span>
+          </button>
+        </div>
+
+        <h4><i class="fa fa-sign-out fa-fw"></i> Logout </h4>
+        <div class="list-group">
+          <button type="button" class="list-group-item" ng-click="logout()">
+            <i class="fa fa-sign-out fa-fw"></i> Logout
+          </button>
+        </div>
+
+        <h4><i class="fa fa-gear fa-fw"></i> Settings</h4>
+        <div class="list-group">
+          <button type="button" class="list-group-item" ng-click="config.AnnyangEnabled=!config.AnnyangEnabled">
+            Voice Control
+            <span class="badge">
+              <span ng-if="!config.AnnyangEnabled"><i class="fa fa-microphone-slash fa-fw"></i> Off </span>
+              <span ng-if="config.AnnyangEnabled"><i class="fa fa-microphone fa-fw"></i> On </span>
+            </span>
+          </button>
+          <button type="button" class="list-group-item" ng-click="config.BleCentralEnabled=!config.BleCentralEnabled">
+            Bluetoothle
+            <span class="badge">
+              <span ng-if="!config.BleCentralEnabled"><i class="fa fa-bluetooth fa-fw"></i> Off </span>
+              <span ng-if="config.BleCentralEnabled"><i class="fa fa-bluetooth-b fa-fw"></i> On </span>
+            </span>
+          </button>
+          <button type="button" class="list-group-item" ng-click="config.UpnpEnabled=!config.UpnpEnabled">
+            UPNP (WeMo device)
+            <span class="badge">
+              <span ng-if="!config.UpnpEnabled"><i class="fa fa-rss-square fa-fw"></i> Off </span>
+              <span ng-if="config.UpnpEnabled"><i class="fa fa-rss fa-fw"></i> On </span>
+            </span>
+          </button>
+        </div>
+
+        <h4><i class="fa fa-info fa-fw"></i> System </h4>
+        <ul class="list-group">
+          <li class="list-group-item">
+            Version: <span class="badge"> 1.0 </span>
+          </li>
+          <li class="list-group-item">
+            Feedback: u3526890@connect.hku.hk
+          </li>
+        </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+      </div>
+    </div>
+    <!-- /modal-content -->
+  </div>
+</div>
+<!--end of modal-->

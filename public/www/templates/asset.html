@@ -1,0 +1,32 @@
+<div class="col-xs-12 no-padding">
+  <div class="panel panel-primary card" ng-class="asset.online ? 'online':'offline'">
+    <div class="panel-heading" ng-click="editAsset(asset)">
+      <span class="glyphicon glyphicon-pencil"> {{asset.name}} </span>
+      <span class="glyphicon" ng-class="asset.markers.length >= 0 ? 'glyphicon-star' : 'glyphicon-star-empty'" style="float: right; font-size: 18px; color: #ff0;"></span>
+    </div>
+    <div class="panel-body" ng-click="showAsset(asset)" style="padding: 5px">
+      <table><tr>
+        <td>
+          <img class="media-object img-l" ng-src="{{getImage(asset.img, '../img/book.png')}}">
+        </td>
+        <td class="align-middle" width="100%">
+          <h4 ng-if="!asset.bookings" class="text-center" ng-click="getBookingList(asset); $event.stopPropagation();"> Check Reservation </h4>
+          <h4 ng-if="asset.bookings" class="text-center" ng-init="getBookingList(asset)">
+            {{asset.bookings ? asset.bookings.length + ' Bookings' : ' '}} </h4>
+
+            <ul class="list-group small" ng-if="asset.bookings" ng-repeat="booking in asset.bookings | limitTo:1" style="white-space: nowrap;">
+              <li class="list-group-item"><span class="glyphicon glyphicon-th-large"></span> {{booking.summary}}</li>
+              <li class="list-group-item"> <span class="glyphicon glyphicon-calendar"></span> {{booking.start}}</li>
+              <li class="list-group-item"> <span class="glyphicon glyphicon-user"></span> {{booking.created_by}} </li>
+            </ul>
+          </td>
+        </tr></table>
+      </div>
+      <div class="panel-footer">
+        <div class="btn-group">
+          <button class="btn btn-warning" ng-click="showModal('#assetsManageModal', {form:'form_editBooking', _form:asset})">New Bokking</button>
+          <button class="btn btn-info" ng-click="getBookingList(asset)">Check</button>
+        </div>
+      </div>
+    </div>
+  </div>

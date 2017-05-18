@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>SB Admin 2 - Bootstrap Admin Theme</title>
+
+	    <!-- ionic/angularjs js -->
+	    <script src="../lib/ionic/js/ionic.bundle.js"></script>
+
+	    <!-- cordova script (this will be a 404 during development) -->
+	    <script src="../cordova.js"></script>
+
+	    <!-- your app's js -->
+	    <script src="../js/app.js"></script>
+	    <script src="../js/controllers.js"></script>
+	    <script src="../js/services.js"></script>
+
+		<!-- Bootstrap Core CSS -->
+		<link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+		<!-- MetisMenu CSS -->
+		<link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+		<!-- Custom CSS -->
+		<link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+		<!-- Custom Fonts -->
+		<link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+		<!-- FullCalendar CSS -->
+		<link href="../vendor/fullcalendar-3.0.1/fullcalendar.css" rel="stylesheet">
+		<!-- daterangepicker CSS -->
+		<link href="../vendor/daterangepicker/daterangepicker.css" rel="stylesheet">
+
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+				<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+				<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+		<script type="text/javascript">
+			var jsData;
+			function setJSData($scope){
+				jsData = $scope;
+			}
+			// Your Client ID can be retrieved from your project in the Google
+			// Developer Console, https://console.developers.google.com
+			var CLIENT_ID = '934310179470-gpg500orac4kp12f5g0tipg27rr51rqh.apps.googleusercontent.com';
+
+			var SCOPES = ["https://www.googleapis.com/auth/calendar", 'https://www.googleapis.com/auth/tasks', 'https://mail.google.com/'];
+
+			/**
+			 * Check if current user has authorized this application.
+			 */
+			function checkAuth() {
+				gapi.auth.authorize(
+					{
+						'client_id': CLIENT_ID,
+						'scope': SCOPES.join(' '),
+						'immediate': true
+					}, handleAuthResult);
+			}
+
+			/**
+			 * Handle response from authorization server.
+			 *
+			 * @param {Object} authResult Authorization result.
+			 */
+			function handleAuthResult(authResult) {
+				var authorizeDiv = document.getElementById('authorize-div');
+				if (authResult && !authResult.error) {
+					// Hide auth UI, then load client library.
+					authorizeDiv.style.display = 'none';
+					loadGmailApi();
+				} else {
+					// Show auth UI, allowing the user to initiate authorization by
+					// clicking authorize button.
+					authorizeDiv.style.display = 'inline';
+				}
+			}
+
+			function handleAuthClick(event) {
+				gapi.auth.authorize(
+					{client_id: CLIENT_ID, scope: SCOPES, immediate: false},
+					handleAuthResult);
+				return false;
+			}
+
+			function loadGmailApi() {
+				gapi.client.load('gmail', 'v1', listByContact);
+			}
+
+			function listByContact(){
+				for(var u=0; u<jsData.contacts.length; u++){
+				
+					var email = jsData.contacts[u].email;
+					listThreads(email, 3);
+				}
+				console.log(jsData.threadlists);	
+				console.log(jsData.threads);
+			}
+
+			function listMessages(email, maxResults) {
+				var q = email ? 'from:('+email+') | to:('+email+') -in:chats' : ' -in:chats';
+
+				var request = gapi.client.gmail.users.messages.list({
+				    'userId': 'me',
+				    maxResults: maxResults,
+				    q: q,
+				});
+
+				request.execute(function(resp) {
+					var messages = resp.messages;
+					jsData.messagelists[email] = resp.messages;
+					jsData.$apply();
+
+					if (messages.length > 0) {
+						for(var i = 0; i < messages.length; i++){
+							getMessage(messages[i].id, 'full');
+						}
+					} else {
+						console.log('No messages found.');
+					}
+				});
+			}
+			function listThreads(email, maxResults) {
+				var q = email ? 'from:('+email+') | to:('+email+') -in:chats' : ' -in:chats';
+
+				var request = gapi.client.gmail.users.threads.list({
+				    'userId': 'me',
+				    maxResults: maxResults,
+				    q: q,
+				});
+
+				request.execute(function(resp) {
+					var threads = resp.threads;
+					jsData.threadlists[email] = resp.threads;
+					jsData.$apply();
+					
+					if (threads && threads.length > 0) {
+						for(var i = 0; i < threads.length; i++){
+							getThread(threads[i].id, 'metadata');
+						}
+					} else {
+						console.log('No thread found.');
+					}
+					
+				});
+			}
+			function getThread(threadId, format){
+
+				var request = gapi.client.gmail.users.threads.get({
+				    userId: 'me',
+				    id: threadId,
+				    format: format,
+				});
+
+				request.execute(function(resp) {
+					//console.log(resp);
+					var messages = resp.messages;
+					jsData.threads[threadId] = messages;
+					jsData.$apply();
+
+					//testing
+					//getMessage(messages[messages.length-1].id, 'full');
+					//jsData._threads = messages;
+	    			//jsData.showRead = true;
+		    		//$('#myModal').modal('show');
+				});
+			}
+
+			function getMessage(messageId, format){
+
+				var request = gapi.client.gmail.users.messages.get({
+				    userId: 'me',
+				    id: messageId,
+				    format: format,
+				});
+
+				request.execute(function(resp) {
+					console.log(resp);
+					jsData.messages[messageId] = resp;
+					jsData.$apply();
+				});
+			}
+		</script>
+
+		<script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
+
+</head>
+
+<body>
+
+	<div id="wrapper">
+
+		<!-- Navigation -->
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+				<div class="navbar-header">
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="index.html">SB Admin v2.0</a>
+				</div>
+				<!-- /.navbar-header -->
+
+				<div class="navbar-default sidebar" role="navigation">
+						<div class="sidebar-nav navbar-collapse">
+								<ul class="nav" id="side-menu">
+										<li class="sidebar-search">
+												<div class="input-group custom-search-form">
+														<input type="text" class="form-control" placeholder="Search...">
+														<span class="input-group-btn">
+																<button class="btn btn-default" type="button">
+																		<i class="fa fa-search"></i>
+																</button>
+														</span>
+												</div>
+												<!-- /input-group -->
+										</li>
+										<li>
+												<a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="flot.html">Flot Charts</a>
+														</li>
+														<li>
+																<a href="morris.html">Morris.js Charts</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li>
+												<a href="tables.html"><i class="fa fa-table fa-fw"></i> Tables</a>
+										</li>
+										<li>
+												<a href="forms.html"><i class="fa fa-edit fa-fw"></i> Forms</a>
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-wrench fa-fw"></i> UI Elements<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="panels-wells.html">Panels and Wells</a>
+														</li>
+														<li>
+																<a href="buttons.html">Buttons</a>
+														</li>
+														<li>
+																<a href="notifications.html">Notifications</a>
+														</li>
+														<li>
+																<a href="typography.html">Typography</a>
+														</li>
+														<li>
+																<a href="icons.html"> Icons</a>
+														</li>
+														<li>
+																<a href="grid.html">Grid</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-sitemap fa-fw"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="#">Second Level Item</a>
+														</li>
+														<li>
+																<a href="#">Second Level Item</a>
+														</li>
+														<li>
+																<a href="#">Third Level <span class="fa arrow"></span></a>
+																<ul class="nav nav-third-level">
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																</ul>
+																<!-- /.nav-third-level -->
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li class="active">
+												<a href="#"><i class="fa fa-files-o fa-fw"></i> Sample Pages<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a class="active" href="blank.html">Blank Page</a>
+														</li>
+														<li>
+																<a href="login.html">Login Page</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+								</ul>
+						</div>
+						<!-- /.sidebar-collapse -->
+				</div>
+				<!-- /.navbar-static-side -->
+		</nav>
+
+		<!-- Page Content -->
+		<div id="page-wrapper" ng-app="starter" ng-controller = "ContactsController">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-lg-12">
+						<h1 class="page-header">
+							{{title}} 
+							<button class="btn btn-default" ng-if="!sortByContact" ng-click="switchSorting()">By Contact</button> 
+							<button class="btn btn-default" ng-if="sortByContact" ng-click="switchSorting()">MailBox</button> 
+					        <span class="pull-right">
+					        	<button class="btn btn-default btn-info" ng-click="emailCompose(null, '')"> <span class="glyphicon glyphicon-plus"></span> </button>
+							</span>
+						</h1>
+					</div>
+					<!-- /.col-lg-12 -->
+				</div>
+				<!-- /.row -->
+				<style>
+					.modal-body {background-color: #f0f0f0;}
+					.contact .namecard   {padding: 5px; border: 1px solid #bce8f1;}
+					.contact>.media-left   {padding: 0px !important;}
+					.contact .namecard .details {width: 80px; display: block; overflow: hidden; white-space: nowrap;}
+					.img-l {width: 100px; height: 100px;}
+					.img-s {width: 50px; height: 50px;}
+					.messages .table {width: 100%; table-layout: fixed; border-spacing: 0; white-space: nowrap; background: rgba(243,243,243,.85); margin-bottom: 0px !important;}
+					.messages .table .snippet {display: block; overflow: hidden;}
+					.messages .table .content {color: #777;}
+					.media-body.message {padding: 5px; border-radius: 6px; background-color: #fff}
+					.media-body.message .date {color: #777}
+				</style>
+				<div ng-if="sortByContact" class="media contact" ng-repeat="contact in contacts">
+					<div class="media-left">
+						<div class="media namecard" ng-style="contact.loggedin && {'background-color': '#fff'} || {'background-color': '#ddd'}">
+							<div class="media-left media-middle profile">
+								<img class="media-object img-l" ng-src="{{contact.img}}">
+							</div>
+							<div class="media-body">
+								<div class="details">
+									<h4 class="media-heading"> {{contact.nickname}} <br> {{contact.surname}}</h4>
+									<span class="glyphicon glyphicon-plus"></span>{{contact.department}}<br>
+									<span class="glyphicon glyphicon-plus"></span>{{contact.title}}<br>
+									<span class="glyphicon glyphicon-plus"></span>{{contact.location}}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="media-body messages">
+						<table class="table table-hover" width="100%">
+							<colgroup>
+								<col style="">
+								<col style="width: 20px">
+								<col style="width: 40px">
+								<col style="width: 40px">
+							</colgroup>
+							<tbody>
+								<tr ng-repeat="thread in threadlists[contact.email]" ng-click="emailRead(threads[thread.id])">
+									<td><div class="snippet">{{unescape(getHeader(threads[thread.id][0].payload.headers, "Subject"))}}<span class="content"> - {{unescape(threads[thread.id][0].snippet)}}</span></div></td>
+									<td>{{threads[thread.id].length}}</td>
+									<td>{{timeConvert(threads[thread.id][0].internalDate)}}</td>
+									<td>{{threads[thread.id].labelIds}}</td>
+								</tr>
+							</tbody>
+						</table>
+						<!--
+						<div ng-repeat="thread in threadlists[contact.email]">
+							<a ng-click="" class="row details">
+								<div class="col-xs-1 threadCount">{{threads[thread.id].length}}</div>
+								<div class="col-xs-2 threadDate">{{timeConvert(threads[thread.id][0].internalDate)}}</div>
+								<div class="col-xs threadTitle">{{threads[thread.id][0].snippet}}</div>
+								<div class="col-xs-2 threadLabels">{{threads[thread.id][0].labelIds}}</div>
+							</a>
+					    </div>
+					    -->
+					</div>
+				</div>
+
+				<div class="messages" ng-if="!sortByContact">
+					<table class="table table-hover" width="100%">
+						<colgroup>
+							<col style="">
+							<col style="width: 20px">
+							<col style="width: 40px">
+							<col style="width: 40px">
+						</colgroup>
+						<tbody>
+							<tr ng-repeat="thread in threadlists[undefined]" ng-click="emailRead(threads[thread.id])">
+								<td><div class="snippet">{{unescape(getHeader(threads[thread.id][0].payload.headers, "Subject"))}}<span class="content"> - {{unescape(threads[thread.id][0].snippet)}}</span></div></td>
+								<td>{{threads[thread.id].length}}</td>
+								<td>{{timeConvert(threads[thread.id][0].internalDate)}}</td>
+								<td>{{threads[thread.id].labelIds}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Modal -->
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+								<h4 class="modal-title" id="myModalLabel">
+									<button ng-if="!showRead" class="btn btn-default" ng-click="back()">Back</button>
+									<span ng-if="showRead">Email</span>
+								</h4>
+							</div>
+							<div class="modal-body" id="model_body">
+								<div id="form_read" ng-if="showRead">
+									<div  class="media" ng-repeat="message in _threads">
+										<div class="media-left">
+											<img class="media-object img-s" ng-src="{{!isSent(message)?getImg(getHeader(message.payload.headers, 'From')):'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}}">
+										</div>
+										<div class="media-body message">
+											<h4 class="media-heading">
+												<a href="https://mail.google.com/mail/u/0/#all/{{message.id}}" target="_blank">{{unescape(getHeader(message.payload.headers, "Subject"))}}</a>
+											</h4>
+											<h6 ng-click="emailCompose(message, 'r')">{{unescape(message.snippet)}}</h6>
+											<h6 class="date mall">
+												{{timeConvert(message.internalDate)}} 
+												<span ng-if="isSent(message)">to {{unescape(getHeader(message.payload.headers, "To"))}}</span>
+												<span ng-if="!isSent(message)">by {{unescape(getHeader(message.payload.headers, "From"))}}</span>
+											</h6>
+										</div>
+										<div class="media-right">
+											<img class="media-object img-s" ng-src="{{isSent(message)?getImg(getHeader(message.payload.headers, 'From')):'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}}">
+										</div>
+									</div>
+								</div>
+								<form id="form_compose" ng-if="!showRead">
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="To:" ng-model="_compose.to">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Cc:" ng-model="_compose.cc">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Bcc:" ng-model="_compose.bcc">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Title" ng-model="_compose.title">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<textarea class="form-control" rows="5" ng-model="_compose.content"></textarea>
+									</div>
+									<input type="hidden" name="task_id" ng-model="_compose.threadId">
+
+								</form>
+							</div>
+							<div class="modal-footer">
+								<div class="button-group" role="group" ng-if="showRead">
+									<button class="btn btn-default" ng-click="emailCompose(_threads[0], 'r')">Reply</button>
+									<button class="btn btn-default" ng-click="emailCompose(_threads[0], 'ra')">Reply ALL</button>
+									<button class="btn btn-default" ng-click="emailCompose(_threads[0], 'fw')">Forward</button>
+									<button class="btn btn-primary" ng-click="emailCompose(null, '')">Compose</button>
+								</div>
+								<div class="button-group" role="group" ng-if="!showRead">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button type="button" ng-click="emailComposeSubmit($event, _compose)" class="btn btn-primary" id="modal_submit">Send</button>
+								</div>
+								<div id="modal_msg"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div id="authorize-div" style="display: none">
+						<span>Authorize access to Google API</span>
+						<!--Button for the user to click to initiate auth sequence -->
+						<button id="authorize-button" onclick="handleAuthClick(event)">
+							Authorize
+						</button>
+					</div>
+				</div>
+			</div>
+			<!-- /.container-fluid -->
+		</div>
+		<!-- /#page-wrapper -->
+	</div>
+	<!-- /#wrapper -->
+
+	<!-- jQuery -->
+	<script src="../vendor/jquery/jquery.min.js"></script>
+	<!-- Bootstrap Core JavaScript -->
+	<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+	<!-- Metis Menu Plugin JavaScript -->
+	<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+	<!-- Custom Theme JavaScript -->
+	<script src="../dist/js/sb-admin-2.js"></script>
+
+	<script src="../vendor/fullcalendar-3.0.1/lib/moment.min.js"></script>
+	<script src="../vendor/fullcalendar-3.0.1/fullcalendar.js"></script>
+	<script src="../vendor/daterangepicker/daterangepicker.js"></script>
+
+	<script type="text/javascript">
+		$('#myModal').on('show.bs.modal', function () {
+		});
+
+		angular.module('starter.controllers', []).controller('ContactsController', function($scope) {
+		    setJSData($scope);
+
+		    //view data
+		    $scope.title = "Contact";
+		    $scope.contacts = [
+		    	{id:'u1',email:'smile_eva@ymail.com',gender:'M',surname:'Chan',givenname:'',nickname:'Ken',department:'Admin',title:'Mgt',location:'R402/s07',img:'../img/adam.jpg', loggedin:true},
+		    	{id:'u2',email:'ken.chan.kinyip@gmail.com',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:true},
+		    	{id:'u3',email:'no-reply@ctl.io',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:true},
+		    	{id:'u4',email:'just_for_you@giftcards.apple.com',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:true},
+		    	{id:'u5',email:'noreply@github.com',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:true},
+		    	{id:'u6',email:'donotreply@godaddy.com',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:false},
+		    	{id:'u7',email:'support@buyproxies.org',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:false},
+		    	{id:'u8',email:'u3526890@connect.hku.hk',gender:'M',surname:'Lee',givenname:'',nickname:'AQW',department:'MkT',title:'Mgt',location:'R201/sa',img:'../img/ben.png', loggedin:false},
+		    	{id:'u9',email:'sweet_evapoon@yahoo.com.hk',gender:'F',surname:'Wong',givenname:'',nickname:'BBXaaqweryt',department:'HR',title:'Mgt',location:'R401/s21',img:'../img/mike.png', loggedin:false},
+	    	];
+
+	    	$scope.sortByContact = true;
+	    	$scope.showRead = true;
+		    $scope.messagelists = [];
+		    $scope.messages = [];
+		    $scope.threadlists = [];
+		    $scope.threads = [];
+
+		    //form submit data
+		    $scope._messages = {};
+		    $scope._threads = {};
+		    $scope._compose = {}; 
+
+		    $scope.switchSorting = function(){
+		    	$scope.sortByContact = !$scope.sortByContact;
+		    	$scope.threadlists = [];
+		    	if($scope.sortByContact){
+					for(var u=0; u<jsData.contacts.length; u++){
+						var email = jsData.contacts[u].email;
+						listThreads(email, 3);
+					}
+		    	}else{
+					listThreads(email, 30);
+		    	}
+		    }
+
+		    $scope.timeConvert = function(time){
+		    	if(parseInt(time)){
+		    		return moment(parseInt(time)).format('DD/MM');
+		    	}
+		    	else{
+		    		return moment(time).format('DD/MM');
+		    	}
+		    }
+
+		    $scope.getHeader = function(headers, key){
+		    	if(headers && headers.length > 0){
+		    		for(var i=0; i<headers.length; i++){
+		    			if(headers[i].name == key){
+		    				return headers[i].value;
+		    			}
+		    		}
+		    	}
+		    	return '';
+		    }
+
+		    $scope.isSent = function(message){
+		    	for(var i = 0; i < message.labelIds.length; i++){
+		    		if(message.labelIds[i] == 'SENT'){
+		    			return true;
+		    		}
+		    	}
+		    	return false;
+		    }
+
+		    $scope.getImg = function(user){
+	    		for(var i=0; i<$scope.contacts.length; i++){
+	    			if(user.indexOf($scope.contacts[i].email) >= 0){
+	    				return $scope.contacts[i].img;
+	    			}
+    			}
+				return '../img/max.png';
+		    }
+
+		    $scope.unescape = function(str){
+		    	return unescape(str);
+		    }
+
+		    $scope.back = function(){
+				$scope.showRead = true;
+		    }
+
+		    $scope.emailRead = function(threads){
+		    	console.log(threads);
+		    	$scope._threads = threads;
+
+		    	getThread(threads[threads.length-1].id, 'full');
+	    		
+	    		$scope.showRead = true;
+		    	$('#myModal').modal('show');
+			    $('.modal .modal-body').css('overflow-y', 'auto'); 
+			    $('.modal .modal-body').css('max-height', $(window).height() * 0.70);
+		    }
+
+		    $scope.emailCompose = function(message, action){
+		    	if(message){
+		    		if(action=='r'){
+			    		$scope._compose = {
+			    			title: 'Re: '+$scope.getHeader(message.payload.headers, "Subject"),
+			    			to: $scope.getHeader(message.payload.headers, "From"),
+			    			cc: '',
+			    			bcc: '',
+			    			content: '\n\n---------- Reply ----------\n' + message.snippet,
+			    		}
+			    	}else if(action=='ra'){
+			    		$scope._compose = {
+			    			title: 'Re: '+$scope.getHeader(message.payload.headers, "Subject"),
+			    			to: $scope.getHeader(message.payload.headers, "From"),
+			    			cc: 'a',
+			    			bcc: 'b',
+			    			content: '\n\n---------- Reply ----------\n' + message.snippet,
+			    		}
+			    	}else if(action=='fw'){
+			    		$scope._compose = {
+			    			title: 'Fw: '+$scope.getHeader(message.payload.headers, "Subject"),
+			    			to: '',
+			    			cc: '',
+			    			bcc: '',
+			    			content: '\n\n---------- Forword ----------\n' + message.snippet,
+			    		}
+			    	}
+		    	}else{
+		    		$scope._compose = {};
+		    	}
+
+	    		$scope.showRead = false;
+		    	$('#myModal').modal('show');
+		    	$('.modal .modal-body').css('overflow-y', 'auto'); 
+		    	$('.modal .modal-body').css('max-height', $(window).height() * 0.70);
+		    }
+
+		    $scope.emailComposeSubmit = function($event, compose){
+	    		$scope.showRead = true;
+		    	$('#myModal').modal('hide');
+		    }
+
+		    $scope.deleteEmailSubmit = function($event, tasklist){
+		    }
+		});
+	</script>
+</body>
+
+</html>

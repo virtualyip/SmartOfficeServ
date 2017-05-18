@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>SB Admin 2 - Bootstrap Admin Theme</title>
+
+	    <!-- ionic/angularjs js -->
+	    <script src="../lib/ionic/js/ionic.bundle.js"></script>
+
+	    <!-- cordova script (this will be a 404 during development) -->
+	    <script src="../cordova.js"></script>
+
+	    <!-- your app's js -->
+	    <script src="../js/app.js"></script>
+	    <script src="../js/controllers.js"></script>
+	    <script src="../js/services.js"></script>
+
+		<!-- Bootstrap Core CSS -->
+		<link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+		<!-- MetisMenu CSS -->
+		<link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+
+		<!-- Custom CSS -->
+		<link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+
+		<!-- Custom Fonts -->
+		<link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+		<!-- FullCalendar CSS -->
+		<link href="../vendor/fullcalendar-3.0.1/fullcalendar.css" rel="stylesheet">
+		<!-- daterangepicker CSS -->
+		<link href="../vendor/daterangepicker/daterangepicker.css" rel="stylesheet">
+
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+				<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+				<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+		<script type="text/javascript">
+			var jsData;
+			function setJSData($scope){
+				jsData = $scope;
+			}
+			// Your Client ID can be retrieved from your project in the Google
+			// Developer Console, https://console.developers.google.com
+			var CLIENT_ID = '934310179470-gpg500orac4kp12f5g0tipg27rr51rqh.apps.googleusercontent.com';
+
+			//var SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+        	var SCOPES = ["https://www.googleapis.com/auth/calendar", 'https://www.googleapis.com/auth/tasks', 'https://mail.google.com/'];
+
+			/**
+			 * Check if current user has authorized this application.
+			 */
+			function checkAuth() {
+				gapi.auth.authorize(
+					{
+						'client_id': CLIENT_ID,
+						'scope': SCOPES.join(' '),
+						'immediate': true
+					}, handleAuthResult);
+			}
+
+			/**
+			 * Handle response from authorization server.
+			 *
+			 * @param {Object} authResult Authorization result.
+			 */
+			function handleAuthResult(authResult) {
+				var authorizeDiv = document.getElementById('authorize-div');
+				if (authResult && !authResult.error) {
+					// Hide auth UI, then load client library.
+					authorizeDiv.style.display = 'none';
+					loadCalendarApi();
+					loadTasksApi();
+				} else {
+					// Show auth UI, allowing the user to initiate authorization by
+					// clicking authorize button.
+					authorizeDiv.style.display = 'inline';
+				}
+			}
+
+			/**
+			 * Initiate auth flow in response to user clicking authorize button.
+			 *
+			 * @param {Event} event Button click event.
+			 */
+			function handleAuthClick(event) {
+				gapi.auth.authorize(
+					{client_id: CLIENT_ID, scope: SCOPES, immediate: false},
+					handleAuthResult);
+				return false;
+			}
+
+			/**
+			 * Load Google Calendar client library. List upcoming events
+			 * once client library is loaded.
+			 */
+			function loadCalendarApi() {
+				gapi.client.load('calendar', 'v3', listUpcomingEvents);
+			}
+
+			/**
+			 * Print the summary and start datetime/date of the next ten events in
+			 * the authorized user's calendar. If no events are found an
+			 * appropriate message is printed.
+			 */
+			function listUpcomingEvents() {
+				var request = gapi.client.calendar.events.list({
+					'calendarId': 'primary',
+					'timeMin': (new Date()).toISOString(),
+					'showDeleted': false,
+					'singleEvents': true,
+					'maxResults': 10,
+					'orderBy': 'startTime'
+				});
+
+				request.execute(function(resp) {
+					var events = resp.items;
+					if (events.length > 0) {
+						console.log(events);	
+						jsData.events = events;
+						jsData.sorting();
+						jsData.$apply();
+					} else {
+						console.log('No upcoming events found.');
+					}
+
+				});
+			}
+
+
+			/**
+			 * Load Google Tasks API client library.
+			 */
+			function loadTasksApi() {
+				gapi.client.load('tasks', 'v1', listTasklists);
+			}
+			/**
+			 * Print task lists.
+			 */
+			function listTasklists() {
+				var request = gapi.client.tasks.tasklists.list({
+					'maxResults': 10
+				});
+
+				request.execute(function(resp) {
+					var tasklists = resp.items;
+					
+					console.log(tasklists);
+					jsData.tasklists = tasklists;
+					jsData.$apply();
+
+					if (tasklists && tasklists.length > 0) {
+						for (var i = 0; i < tasklists.length; i++) {
+							var tasklist = tasklists[i];
+							getTasklist(tasklist.id);
+						}
+					} else {
+						console.log('No task lists found.');
+					}
+
+				});
+			}
+
+			function getTasklist(tasklistId){
+				var request = gapi.client.tasks.tasks.list({
+						'tasklist': tasklistId,
+						'maxResults': 10,
+					});
+					request.execute(function(resp) {
+						var tasks = resp.items;
+						console.log(tasks);
+
+						if (tasks && tasks.length > 0) {
+							for (var i = 0; i < tasks.length; i++) {
+								jsData.tasklistItems[tasklistId] = tasks;
+								jsData.sorting();
+								jsData.$apply();
+							}
+						} else {
+							console.log('No tasks found.');
+						}
+					});
+			}
+			/**
+			 * Append a pre element to the body containing the given message
+			 * as its text node.
+			 *
+			 * @param {string} message Text to be placed in pre element.
+			 */
+			function appendPre(message) {
+				var pre = document.getElementById('output');
+				var textContent = document.createTextNode(message + '\n');
+				pre.appendChild(textContent);
+			}
+					
+		</script>
+
+		<script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
+
+</head>
+
+<body>
+
+	<div id="wrapper">
+
+		<!-- Navigation -->
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+				<div class="navbar-header">
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+								<span class="sr-only">Toggle navigation</span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+								<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="index.html">SB Admin v2.0</a>
+				</div>
+				<!-- /.navbar-header -->
+
+				<div class="navbar-default sidebar" role="navigation">
+						<div class="sidebar-nav navbar-collapse">
+								<ul class="nav" id="side-menu">
+										<li class="sidebar-search">
+												<div class="input-group custom-search-form">
+														<input type="text" class="form-control" placeholder="Search...">
+														<span class="input-group-btn">
+																<button class="btn btn-default" type="button">
+																		<i class="fa fa-search"></i>
+																</button>
+														</span>
+												</div>
+												<!-- /input-group -->
+										</li>
+										<li>
+												<a href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="flot.html">Flot Charts</a>
+														</li>
+														<li>
+																<a href="morris.html">Morris.js Charts</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li>
+												<a href="tables.html"><i class="fa fa-table fa-fw"></i> Tables</a>
+										</li>
+										<li>
+												<a href="forms.html"><i class="fa fa-edit fa-fw"></i> Forms</a>
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-wrench fa-fw"></i> UI Elements<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="panels-wells.html">Panels and Wells</a>
+														</li>
+														<li>
+																<a href="buttons.html">Buttons</a>
+														</li>
+														<li>
+																<a href="notifications.html">Notifications</a>
+														</li>
+														<li>
+																<a href="typography.html">Typography</a>
+														</li>
+														<li>
+																<a href="icons.html"> Icons</a>
+														</li>
+														<li>
+																<a href="grid.html">Grid</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li>
+												<a href="#"><i class="fa fa-sitemap fa-fw"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a href="#">Second Level Item</a>
+														</li>
+														<li>
+																<a href="#">Second Level Item</a>
+														</li>
+														<li>
+																<a href="#">Third Level <span class="fa arrow"></span></a>
+																<ul class="nav nav-third-level">
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																		<li>
+																				<a href="#">Third Level Item</a>
+																		</li>
+																</ul>
+																<!-- /.nav-third-level -->
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+										<li class="active">
+												<a href="#"><i class="fa fa-files-o fa-fw"></i> Sample Pages<span class="fa arrow"></span></a>
+												<ul class="nav nav-second-level">
+														<li>
+																<a class="active" href="blank.html">Blank Page</a>
+														</li>
+														<li>
+																<a href="login.html">Login Page</a>
+														</li>
+												</ul>
+												<!-- /.nav-second-level -->
+										</li>
+								</ul>
+						</div>
+						<!-- /.sidebar-collapse -->
+				</div>
+				<!-- /.navbar-static-side -->
+		</nav>
+
+		<!-- Page Content -->
+		<div id="page-wrapper" ng-app="starter" ng-controller = "TasksController">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-lg-12">
+						<h1 class="page-header">
+							{{title}} 
+							<button ng-click="SortByList=true" class="btn btn-default">By List</button> 
+							<button ng-click="SortByList=false" class="btn btn-default">By Date</button>
+					        <span class="pull-right">
+					        	<button class="btn btn-default btn-info" ng-click="addTasklist()"> <span class="glyphicon glyphicon-plus"></span> </button>
+							</span>
+						</h1>
+					</div>
+					<!-- /.col-lg-12 -->
+				</div>
+				<!-- /.row -->
+				<ul class="list-group" ng-if="SortByList">
+					<div ng-repeat="tasklist in tasklists" >
+				        <a data-toggle="collapse" data-parent="#accordion" href="#{{tasklist.id}}" class="list-group-item list-group-item-action active clearfix">
+					        {{tasklist.title}}
+							<span class="badge">{{tasklistItems[tasklist.id].length}}</span>
+				       	</a>
+						<!-- /.row -->
+						<div id="{{tasklist.id}}" class="panel-collapse collapse in">
+							<ul class="list-group">
+								<div class="input-group">
+									<input class="form-control" type="text" placeholder="Add New Task" name="task_title" ng-model="_task.new_title">
+									<span class="input-group-btn"><button ng-click="addTaskSubmit($event, tasklist)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+							    </div>
+								<div class="input-group" ng-repeat="task in tasklistItems[tasklist.id]">
+									<a ng-click="editTask(tasklist, task)" class="list-group-item list-group-item-action">
+										<h4 class = "list-group-item-heading">{{task.title}}</h4>
+										<p class = "list-group-item-text">due: {{task.due}} | notes: {{task.notes}}</p>
+									</a>
+									<span class="input-group-btn">
+										<button ng-click="deleteTaskSubmit($event, tasklist, task)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+									</span>
+							    </div>
+							</ul>
+						</div>
+						<!-- /.row -->
+					</div>
+					<div ng-if="events.length">
+				        <a data-toggle="collapse" data-parent="#accordion" href="#calendar_event" class="list-group-item list-group-item-action active">
+				        	Upcoming Event <span class="badge">{{events.length}}</span>
+				        </a>
+						<!-- /.row -->
+						<div id="calendar_event" class="panel-collapse collapse in">
+							<ul class="list-group">
+								<div class="input-group">
+									<a ng-click="addEvent()" class="list-group-item list-group-item-action"> Add New Event </a>
+							        <span class="input-group-btn">
+					        			<button class="btn btn-default btn-info" ng-click="addEvent()"> <span class="glyphicon glyphicon-plus"></span> </button>
+									</span>
+							    </div>
+								<div class="input-group" ng-repeat="event in events">
+									<a ng-click="editEvent(event)" class="list-group-item list-group-item-action">
+										<h4 class = "list-group-item-heading">{{event.summary}} <span ng-if="event.location">({{event.location}})</span></h4>
+										<p class = "list-group-item-text">{{event.start.dateTime}} to {{event.end.dateTime}} <span ng-if="event.description">| {{event.description}}</span> </p>
+									</a>
+							        <span class="input-group-btn">
+							        	<button class="btn btn-default btn-warning glyphicon glyphicon-trash" ng-click="deleteEventSubmit($event, event)"></button>
+									</span>
+								</div>
+							</ul>
+						</div>
+						<!-- /.row -->
+					</div>
+				</ul>
+
+				<ul class="list-group" ng-if="!SortByList">
+					<div ng-repeat="(key, list) in sortedList" ng-if="list.length">
+				        <a data-toggle="collapse" data-parent="#accordion" href="#{{key}}" class="list-group-item list-group-item-action active clearfix">
+					        {{key}}
+							<span class="badge">{{list.length}}</span>
+				       	</a>
+						<!-- /.row -->
+						<div id="{{key}}" class="panel-collapse collapse in">
+							<ul class="list-group">
+								<div class="input-group" ng-repeat="task in list | filter:{ kind: 'tasks#task' }">
+									<a ng-click="editTask(task.tasklist, task)" class="list-group-item list-group-item-action">
+										<h4 class = "list-group-item-heading">{{task.title}}</h4>
+										<p class = "list-group-item-text">due: {{task.due}} | notes: {{task.notes}}</p>
+									</a>
+									<span class="input-group-btn">
+										<button ng-click="deleteTaskSubmit($event, task.tasklist ,task)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+									</span>
+							    </div>
+								<div class="input-group" ng-repeat="event in list | filter:{ kind: 'calendar#event' }">
+									<a ng-click="editEvent(event)" class="list-group-item list-group-item-action">
+										<h4 class = "list-group-item-heading">{{event.summary}} <span ng-if="event.location">({{event.location}})</span></h4>
+										<p class = "list-group-item-text">{{event.start.dateTime}} to {{event.end.dateTime}} <span ng-if="event.description">| {{event.description}}</span> </p>
+									</a>
+									<span class="input-group-btn">
+										<button ng-click="deleteEventSubmit($event, event)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+									</span>
+								</div>
+							</ul>
+						</div>
+						<!-- /.row -->
+					</div>
+				</ul>
+				<!-- Modal -->
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+								<h4 class="modal-title" id="myModalLabel"><span id="modal_title">title</span></h4>
+							</div>
+							<div class="modal-body" id="model_body">
+								<div id="form_tasklist">
+									<div class="input-group">
+										<input class="form-control" type="text" placeholder="Add New Task Group" name="tasklist_title" ng-model="_tasklist.title">
+										<span class="input-group-btn"><button ng-click="addTasklistSubmit($event)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+									</div>
+									<div class="input-group" ng-repeat="tasklist in tasklists">
+										<input class="form-control" type="text" placeholder="Task Group Title" name="tasklist_title" ng-model="tasklist.title">
+										<input type="hidden" name="tasklist_id" ng-model="tasklist.id">
+										<input type="hidden" name="tasklist_kind" ng-model="tasklist.kind">
+										<input type="hidden" name="tasklist_etag" ng-model="tasklist.etag">
+										<input type="hidden" name="tasklist_updated" ng-model="tasklist.updated">
+										<input type="hidden" name="tasklist_selfLink" ng-model="tasklist.selfLink">
+										<span class="input-group-addon" ng-click="editTasklistSubmit($event, tasklist)"><span class="glyphicon glyphicon-pencil"></span></span>
+										<span class="input-group-addon" ng-click="deleteTasklistSubmit($event, tasklist)"><span class="glyphicon glyphicon-trash"></span></span>
+									</div>
+								</div>
+								<form id="form_task">
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<select class="form-control selectpicker" ng-model="_tasklist.id" ng-change="" disabled="disabled">
+											<option ng-repeat="tasklist in tasklists" selected="{{tasklist.id == _tasklist.id}}" value="{{tasklist.id}}">{{tasklist.title}}</option>
+										</select>
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Task Title" ng-model="_task.title">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Task notes" ng-model="_task.notes">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Task status" ng-model="_task.status">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+										<input class="form-control" type="text" placeholder="Task due date" name="task_due" ng-model="_task.due">
+										<span ng-click="_task.due = null" class="input-group-addon"><span class="glyphicon glyphicon-trash"></span></span>
+									</div>
+									<input type="hidden" name="task_id" ng-model="_task.id">
+									<input type="hidden" name="task_kind" ng-model="_task.kind">
+									<input type="hidden" name="task_etag" ng-model="_task.etag">
+									<input type="hidden" name="task_kind" ng-model="_task.kind">
+									<input type="hidden" name="task_selfLink" ng-model="_task.selfLink">
+									<input type="hidden" name="task_parent" ng-model="_task.parent">
+									<input type="hidden" name="task_position" ng-model="_task.position">
+									<input type="hidden" name="task_completed" ng-model="_task.completed">
+									<input type="hidden" name="task_deleted" ng-model="_task.deleted">
+									<input type="hidden" name="task_hidden" ng-model="_task.hidden">
+									<input type="hidden" name="task_links" ng-model="_task.links">
+
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button type="button" ng-click="editTaskSubmit($event, _tasklist, _task)" class="btn btn-primary" id="modal_submit">Save changes</button>
+								</form>
+								<form id="form_event">
+									<div class="input-group">
+										<span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+										<input class="form-control" type="text" placeholder="Event Title" ng-model="_event.summary">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+										<input class="form-control" type="text" placeholder="Event Description" ng-model="_event.description">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+										<input class="form-control" type="text" placeholder="Event Location" ng-model="_event.location">
+									</div>
+									<div class="input-group">
+										<span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+										<input class="form-control" type="text" placeholder="Event Time" name="event_daterange" mg-model="_event.daterange">
+									</div>
+									<div id="event_updated">Updated at: {{_event.updated}}</div>
+									<div id="event_reminider">Reminider: {{_event.reminder}}</div>
+									<input type="hidden" name="calendarId" ng-model="_event.iCalUID">
+									<input type="hidden" name="eventId" ng-model="_event.eventId">
+
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+									<button type="button" ng-click="editEventSubmit($event, _event)" class="btn btn-primary" id="modal_submit">Save changes</button>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<div id="modal_msg"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div id="authorize-div" style="display: none">
+						<span>Authorize access to Google API</span>
+						<!--Button for the user to click to initiate auth sequence -->
+						<button id="authorize-button" onclick="handleAuthClick(event)">
+							Authorize
+						</button>
+					</div>
+					<pre id="output"></pre>
+				</div>
+			</div>
+			<!-- /.container-fluid -->
+		</div>
+		<!-- /#page-wrapper -->
+	</div>
+	<!-- /#wrapper -->
+
+	<!-- jQuery -->
+	<script src="../vendor/jquery/jquery.min.js"></script>
+	<!-- Bootstrap Core JavaScript -->
+	<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+	<!-- Metis Menu Plugin JavaScript -->
+	<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+	<!-- Custom Theme JavaScript -->
+	<script src="../dist/js/sb-admin-2.js"></script>
+
+	<script src="../vendor/fullcalendar-3.0.1/lib/moment.min.js"></script>
+	<script src="../vendor/fullcalendar-3.0.1/fullcalendar.js"></script>
+	<script src="../vendor/daterangepicker/daterangepicker.js"></script>
+
+	<script type="text/javascript">
+		angular.module('starter.controllers', []).controller('TasksController', function($scope) {
+		    setJSData($scope);
+
+			$(document).ready(function(){
+				  $('input[name="task_due"]').daterangepicker({
+				        singleDatePicker: true,
+				        showDropdowns: true,
+				    	locale: {
+							format: 'YYYY-MM-DD',
+				    	}
+				  });
+				  $('input[name="task_due"]').on('apply.daterangepicker', function(ev, picker) {
+				     $scope._task.due = picker.startDate.format('YYYY-MM-DDTHH:mm:ssZ');
+				  });
+
+
+				$('input[name="event_daterange"]').daterangepicker({
+					timePicker: true,
+					timePickerIncrement: 5,
+					timePicker24Hour: true,
+					locale: {
+						format: 'YYYY-MM-DD hh:mm A'
+					}
+				});
+			 	$('input[name="event_daterange"]').on('apply.daterangepicker', function(ev, picker) {
+			    	$scope._event.start.dateTime = picker.startDate.format('YYYY-MM-DDTHH:mm:ssZ');
+			    	$scope._event.end.dateTime = picker.endDate.format('YYYY-MM-DDTHH:mm:ssZ');
+				});
+			});
+
+		    //view data
+		    $scope.SortByList = true;
+			$scope.sortedList = { };
+		    $scope.title = "Tasks";
+		    $scope.tasklists = [];
+		    $scope.tasklistItems = [];
+		    $scope.events = [];
+
+		    //form submit data
+		    $scope._tasklist = {};
+		    $scope._task = {};
+		    $scope._event = {};
+
+		    $scope.sorting = function(){
+		    	$scope.sortedList = {
+		    		'Within 1 day' : [],
+		    		'Within 2 days' : [],
+		    		'Within 1 week' : [],
+		    		'Within 1 month' : [],
+		    		'Exceed 1 month' : [],
+		    		'No date' : [],
+		    		'Passed' : [],
+		    	};
+		    	if( $scope.tasklists && $scope.tasklists.length > 0){
+					for (var i = 0; i < $scope.tasklists.length; i++) {
+						var tasklist = $scope.tasklists[i];
+						var tasks = $scope.tasklistItems[tasklist.id];
+						//console.log(tasks);
+		    			if(tasks && tasks.length > 0){
+							for (var j = 0; j < tasks.length; j++) {
+								var task = tasks[j];
+								task.tasklist = tasklist;
+								if(!task.due){
+									$scope.sortedList['No date'].push(task);
+								}else{
+									$scope.sortedList[pharseDayDiff(task.due)].push(task);
+								}
+							}
+						}
+					}
+				}
+				if($scope.events && $scope.events.length > 0){
+					for (var i = 0; i < $scope.events.length; i++) {
+						var event = $scope.events[i];
+						if(event.start.dateTime){
+							$scope.sortedList[pharseDayDiff(event.start.dateTime)].push(event);
+						}
+					}
+				}
+		    }
+
+		    $scope.addTasklist = function(){
+		    	console.log("addTasklist");
+				listTasklists();
+				$('#modal_title').html("Add new task group");
+				$scope._tasklist = {};
+
+		    	$('#form_tasklist').show();
+		    	$('#form_task').hide();
+		    	$('#form_event').hide();
+		    	$('#myModal').modal('show');
+		    }
+
+		    $scope.editTasklist = function(tasklist){ }
+
+		    $scope.deleteTasklist = function(tasklist){
+		    	console.log("deleteTasklist");
+				$('#modal_title').html("Delete task group");
+				$scope._tasklist = {
+					id: tasklist.id,
+				}
+
+		    	$('#form_tasklist').show();
+		    	$('#form_task').hide();
+		    	$('#form_event').hide();
+		    	$('#myModal').modal('show');
+		    }
+
+		    $scope.addTask = function(tasklist){ }
+
+		    $scope.editTask = function(tasklist, task){
+		    	console.log("editTask");
+				$('#modal_title').html("Edit task");
+				$scope._task = task;
+				if($scope._task.due){
+					$('input[name="task_due"]').val($scope._task.due);
+				}else{
+					$('input[name="task_due"]').val('');
+				}
+				$scope._tasklist = tasklist;
+
+		    	$('#form_tasklist').hide();
+		    	$('#form_task').show();
+		    	$('#form_event').hide();
+		    	$('#myModal').modal('show');
+		    }
+
+		    $scope.deleteTask = function(){ }
+
+		    $scope.addEvent = function(){
+		    	console.log("editEvent");
+				$('#modal_title').html("Add New Event");
+				$scope._event = {};
+				$scope._event.start = {dateTime: new Date()};
+				$scope._event.end = {dateTime: new Date()};
+				$('input[name="event_daterange"]').data('daterangepicker').setStartDate($scope._event.start.dateTime);
+				$('input[name="event_daterange"]').data('daterangepicker').setEndDate($scope._event.end.dateTime);
+
+		    	$('#form_tasklist').hide();
+		    	$('#form_task').hide();
+		    	$('#form_event').show();
+		    	$('#myModal').modal('show');
+		    }
+
+		    $scope.editEvent = function(event){
+		    	console.log("editEvent");
+				$('#modal_title').html("Edit Event");
+				$scope._event = event;
+				$('input[name="event_daterange"]').data('daterangepicker').setStartDate(event.start.dateTime);
+				$('input[name="event_daterange"]').data('daterangepicker').setEndDate(event.end.dateTime);
+
+		    	$('#form_tasklist').hide();
+		    	$('#form_task').hide();
+		    	$('#form_event').show();
+		    	$('#myModal').modal('show');
+		    }
+
+		    $scope.deleteEvent = function(){ }
+
+
+		    $scope.addTasklistSubmit = function($event){
+		    	if($scope._tasklist.title){
+		    		$event.target.disabled = true;
+					gapi.client.tasks.tasklists.insert({
+						'resource': {
+							title: $scope._tasklist.title,
+						}
+					}).then(function(response) {
+						$scope._tasklist.title = '';
+	    				$event.target.disabled = false;
+						listTasklists();
+			        }, function(reason) {
+			        	console.log('Error: ' + reason.result.error.message);
+	    				$event.target.disabled = false;
+			        });
+				}
+			}
+		    $scope.editTasklistSubmit = function($event, tasklist){
+		    	if(tasklist.title){
+		    		$event.target.disabled = true;
+					gapi.client.tasks.tasklists.update({
+						'tasklist': tasklist.id,
+						'resource': {
+							id: tasklist.id,
+							title: tasklist.title,
+						}
+					}).then(function(response) {
+	    				$event.target.disabled = false;
+						listTasklists();
+			        }, function(reason) {
+			        	console.log('Error: ' + reason.result.error.message);
+	    				$event.target.disabled = false;
+			        });
+				}
+		    }
+		    $scope.deleteTasklistSubmit = function($event, tasklist){
+	    		$event.target.disabled = true;
+				gapi.client.tasks.tasklists.delete({
+					'tasklist': tasklist.id,
+				}).then(function(response) {
+    				$event.target.disabled = false;
+					listTasklists();
+		        }, function(reason) {
+		        	console.log('Error: ' + reason.result.error.message);
+    				$event.target.disabled = false;
+		        });
+		    }
+
+		    $scope.addTaskSubmit = function($event, tasklist){
+		    	if($scope._task.new_title){
+	    			$event.target.disabled = true;
+					gapi.client.tasks.tasks.insert({
+						'tasklist': tasklist.id,
+						'resource': {
+							title: $scope._task.new_title
+						}
+					}).then(function(response) {
+						$scope._task.new_title = '';
+	    				$event.target.disabled = false;
+						getTasklist(tasklist.id);
+			        }, function(reason) {
+			        	console.log('Error: ' + reason.result.error.message);
+	    				$event.target.disabled = false;
+			        });
+		    	}
+		    }
+
+		    $scope.deleteTaskSubmit = function($event, tasklist, task){
+    			$event.target.disabled = true;
+				gapi.client.tasks.tasks.delete({
+					'tasklist': tasklist.id,
+					'task': task.id,
+				}).then(function(response) {
+					getTasklist(tasklist.id);
+    				$event.target.disabled = false;
+		        }, function(reason) {
+		        	console.log('Error: ' + reason.result.error.message);
+    				$event.target.disabled = false;
+		        });
+		    }
+
+		    $scope.editTaskSubmit = function($event, tasklist, task){
+		    	if(task.title){
+    				$event.target.disabled = true;
+					gapi.client.tasks.tasks.update({
+						'tasklist': tasklist.id,
+						'task': task.id,
+						'resource': {
+							id: task.id,
+							title: task.title,
+							notes: task.notes,
+							due: task.due,
+						}
+					}).then(function(response) {
+						getTasklist(tasklist.id);
+		    			$('#myModal').modal('hide');
+	    				$event.target.disabled = false;
+			        }, function(reason) {
+			        	console.log('Error: ' + reason.result.error.message);
+	    				$event.target.disabled = false;
+			        });
+		    	}
+		    }
+
+		    $scope.editEventSubmit = function($event, event){
+		    	if(event.summary){
+    				$event.target.disabled = true;
+
+					var request;
+		    		var request_body = {
+						'calendarId' : "primary",
+						'resource': {
+							summary: event.summary,
+							description: event.description,
+							location: event.location,
+							start: {dateTime: event.start.dateTime},
+							end: {dateTime: event.end.dateTime},
+						}
+					};
+
+					if(event.id){
+						request_body.eventId = event.id;
+						request = gapi.client.calendar.events.update(request_body);
+					}else{
+						request = gapi.client.calendar.events.insert(request_body);
+					}
+		    		request.execute(function(response) {
+						listUpcomingEvents();
+		    			$('#myModal').modal('hide');
+	    				$event.target.disabled = false;
+			        });
+				}
+		    }
+
+		    $scope.deleteEventSubmit = function($event, event){
+				$event.target.disabled = true;
+				gapi.client.calendar.events.delete({
+					eventId: event.id,
+					calendarId : "primary",
+				}).then(function(response) {
+					listUpcomingEvents();
+	    			$('#myModal').modal('hide');
+    				$event.target.disabled = false;
+		        }, function(reason) {
+		        	console.log('Error: ' + reason.result.error.message);
+    				$event.target.disabled = false;
+		        });
+		    }
+		});
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,281 @@
+
+<!-- dependency-->
+<!-- daterangepicker -->
+<link href="../vendor/daterangepicker/daterangepicker.css" rel="stylesheet">
+<script src="../vendor/daterangepicker/daterangepicker.js"></script>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('input[name="task_due"]').daterangepicker({
+      singleDatePicker: true,
+      showDropdowns: true,
+      locale: {
+        format: 'YYYY-MM-DD',
+      }
+    });
+    $('input[name="event_daterange"]').daterangepicker({
+      timePicker: true,
+      timePickerIncrement: 5,
+      timePicker24Hour: true,
+      locale: {
+        format: 'YYYY-MM-DD hh:mm A'
+      }
+    });
+  });
+</script>
+
+<div ng-controller = "TasksController" ng-init="init()">
+
+  <!-- modal -->
+  <div class="modal fade" id="tasksManageModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">
+            <button type="button" class="back" ng-click="pageback()">
+              <span class="glyphicon glyphicon-chevron-left"></span> 
+            </button>
+            <span id="modal_title">Tasks</span>
+            <button ng-click="showForm('tasklist')" ng-if="showingForm=='taskdate'" class="btn btn-default">By List</button> 
+            <button ng-click="showForm('taskdate')" ng-if="showingForm=='tasklist'" class="btn btn-default">By Date</button>
+            <span class="pull-right">
+              <button class="btn btn-default btn-info" ng-click="addTasklist()"> <span class="glyphicon glyphicon-plus"></span> </button>
+            </span>
+          </h4>
+        </div>
+        <!--end of modal-header-->
+        <div class="modal-body" id="model_body">
+
+          <ul class="list-group" ng-if="showingForm=='tasklist'">
+            <div ng-repeat="tasklist in tasklists" >
+              <a data-toggle="collapse" data-parent="#accordion" href="#{{tasklist.id}}" class="list-group-item list-group-item-action active clearfix">
+                {{tasklist.title}}
+                <span class="badge">{{tasklistItems[tasklist.id].length}}</span>
+              </a>
+              <!-- /.row -->
+              <div id="{{tasklist.id}}" class="panel-collapse collapse in">
+                <ul class="list-group">
+                  <div class="input-group">
+                    <input class="form-control" type="text" placeholder="Add New Task" name="task_title" ng-model="_task.new_title">
+                    <span class="input-group-btn"><button ng-click="addTaskSubmit($event, tasklist)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+                  </div>
+                  <div class="input-group" ng-repeat="task in tasklist.tasks">
+                    <a ng-click="editTask(tasklist, task)" class="list-group-item list-group-item-action">
+                      <h4 class = "list-group-item-heading">{{task.title}}</h4>
+                      <p class = "list-group-item-text">[Due: {{task.due?task.due.format('YYYY-MM-DD'):'No due Date'}}] notes: {{task.notes}}</p>
+                    </a>
+                    <span class="input-group-btn">
+                      <button ng-click="deleteTaskSubmit($event, tasklist, task)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+                    </span>
+                  </div>
+                </ul>
+              </div>
+              <!-- /.row -->
+            </div>
+            <div ng-if="events.length">
+              <a data-toggle="collapse" data-parent="#accordion" href="#calendar_event" class="list-group-item list-group-item-action active">
+                Upcoming Event <span class="badge">{{events.length}}</span>
+              </a>
+              <!-- /.row -->
+              <div id="calendar_event" class="panel-collapse collapse in">
+                <ul class="list-group">
+                  <div class="input-group">
+                    <a ng-click="addEvent()" class="list-group-item list-group-item-action"> Add New Event </a>
+                    <span class="input-group-btn">
+                      <button class="btn btn-default btn-info" ng-click="addEvent()"> <span class="glyphicon glyphicon-plus"></span> </button>
+                    </span>
+                  </div>
+                  <div class="input-group" ng-repeat="event in home.events">
+                    <a ng-click="editEvent(event)" class="list-group-item list-group-item-action">
+                      <h4 class = "list-group-item-heading">{{event.summary}} <span ng-if="event.location">({{event.location}})</span></h4>
+                      <p class = "list-group-item-text">{{event.start.dateTime}} to {{event.end.dateTime}} <span ng-if="event.description">| {{event.description}}</span> </p>
+                    </a>
+                    <span class="input-group-btn">
+                      <button class="btn btn-default btn-warning glyphicon glyphicon-trash" ng-click="deleteEventSubmit($event, event)"></button>
+                    </span>
+                  </div>
+                </ul>
+              </div>
+              <!-- /.row -->
+            </div>
+          </ul>
+
+          <ul class="list-group" ng-if="showingForm=='taskdate'">
+            <div ng-repeat="(key, list) in sortedList" ng-if="list.length">
+              <a data-toggle="collapse" data-parent="#accordion" href="#{{key}}" class="list-group-item list-group-item-action active clearfix">
+                {{key}}
+                <span class="badge">{{list.length}}</span>
+              </a>
+              <!-- /.row -->
+              <div id="{{key}}" class="panel-collapse collapse in">
+                <ul class="list-group">
+                  <div class="input-group" ng-repeat="task in list | filter:{ kind: 'tasks#task' }">
+                    <a ng-click="editTask(task.tasklist, task)" class="list-group-item list-group-item-action">
+                      <h4 class = "list-group-item-heading">{{task.title}}</h4>
+                      <p class = "list-group-item-text">[Due: {{task.due?task.due.format('YYYY-MM-DD'):'No due Date'}}] | notes: {{task.notes}}</p>
+                    </a>
+                    <span class="input-group-btn">
+                      <button ng-click="deleteTaskSubmit($event, task.tasklist ,task)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+                    </span>
+                  </div>
+                  <div class="input-group" ng-repeat="event in list | filter:{ kind: 'calendar#event' }">
+                    <a ng-click="editEvent(event)" class="list-group-item list-group-item-action">
+                      <h4 class = "list-group-item-heading">{{event.summary}} <span ng-if="event.location">({{event.location}})</span></h4>
+                      <p class = "list-group-item-text">{{event.start.dateTime}} to {{event.end.dateTime}} <span ng-if="event.description">| {{event.description}}</span> </p>
+                    </a>
+                    <span class="input-group-btn">
+                      <button ng-click="deleteEventSubmit($event, event)" class="btn btn-secondary glyphicon glyphicon-trash"></button>
+                    </span>
+                  </div>
+                </ul>
+              </div>
+              <!-- /.row -->
+            </div>
+          </ul>
+
+          <div ng-if="showingForm=='form_tasklist'">
+            <div class="input-group">
+              <input class="form-control" type="text" placeholder="Add New Task Group" name="tasklist_title" ng-model="_tasklist.title">
+              <span class="input-group-btn"><button ng-click="addTasklistSubmit($event)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+            </div>
+            <div class="input-group" ng-repeat="tasklist in tasklists">
+              <input class="form-control" type="text" placeholder="Task Group Title" name="tasklist_title" ng-model="tasklist.title">
+              <input type="hidden" name="tasklist_id" ng-model="tasklist.id">
+              <input type="hidden" name="tasklist_kind" ng-model="tasklist.kind">
+              <input type="hidden" name="tasklist_etag" ng-model="tasklist.etag">
+              <input type="hidden" name="tasklist_updated" ng-model="tasklist.updated">
+              <input type="hidden" name="tasklist_selfLink" ng-model="tasklist.selfLink">
+              <span class="input-group-addon" ng-click="editTasklistSubmit($event, tasklist)"><span class="glyphicon glyphicon-pencil"></span></span>
+              <span class="input-group-addon" ng-click="deleteTasklistSubmit($event, tasklist)"><span class="glyphicon glyphicon-trash"></span></span>
+            </div>
+          </div>
+
+          <div ng-if="showingForm=='form_task'">
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-tasks"></span></span>
+              <select class="form-control selectpicker" ng-model="_tasklist.new_id" ng-init="_tasklist.new_id=_tasklist.id">
+                <option ng-repeat="tasklist in tasklists" ng-selected="{{tasklist.id == _tasklist.new_id}}" value="{{tasklist.id}}">{{tasklist.title}}</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-briefcase"></span></span>
+              <input class="form-control" type="text" placeholder="Task Title" ng-model="_task.title">
+              <span ng-click="_task.title = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-comment"></span></span>
+              <input class="form-control" type="text" placeholder="Task notes" ng-model="_task.notes">
+              <span ng-click="_task.notes = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+              <input class="form-control" type="text" placeholder="Due Date" ng-model="_task.due">
+              <span ng-click="_task.due = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+            </div>
+            <div class="input-group">
+              <label>Due Date: </label>
+              <datetimepicker data-ng-model="_task.due" data-datetimepicker-config="{ startView:'day', minView:'day' }" />
+            </div>
+<!--
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+              <input class="form-control" type="text" placeholder="Task status" ng-model="_task.status">
+              <span ng-click="_task.status = null" class="input-group-addon"><span class="glyphicon glyphicon-trash"></span></span>
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+              <input class="form-control" type="button" data-toggle="modal" data-target="#startDateModal" ng-model="dateRangeStart" ng-click="modalLoaded('#dateRangeModal', false)">
+              <span ng-click="dateRangeStart = null" class="input-group-addon"><span class="glyphicon glyphicon-trash"></span></span>
+            </div>
+          -->
+          <input type="hidden" name="task_id" ng-model="_task.id">
+          <input type="hidden" name="task_kind" ng-model="_task.kind">
+          <input type="hidden" name="task_etag" ng-model="_task.etag">
+          <input type="hidden" name="task_kind" ng-model="_task.kind">
+          <input type="hidden" name="task_selfLink" ng-model="_task.selfLink">
+          <input type="hidden" name="task_parent" ng-model="_task.parent">
+          <input type="hidden" name="task_position" ng-model="_task.position">
+          <input type="hidden" name="task_completed" ng-model="_task.completed">
+          <input type="hidden" name="task_deleted" ng-model="_task.deleted">
+          <input type="hidden" name="task_hidden" ng-model="_task.hidden">
+          <input type="hidden" name="task_links" ng-model="_task.links">
+        </div>
+      </div>
+      <!--end of modal-body-->
+
+      <div class="modal-footer">
+        <a href="#" ng-click="closeModal()" class="btn">Close</a>
+        <button type="button" ng-if="showingForm=='form_task'" ng-click="editTaskSubmit($event, _tasklist, _task)" class="btn btn-primary">
+          Save
+        </button>
+        <button type="button" ng-if="showingForm=='form_event'" ng-click="editEventSubmit($event, _event)" class="btn btn-primary">
+          Save
+        </button>
+        <div id="modal_msg"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- end of modal -->
+
+<!-- Modal -->
+<div class="modal fade" id="dateRangeModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+      </div>
+      <div class="modal-body">
+        <datetimepicker data-ng-model="dateRangeStart"
+        data-datetimepicker-config="{ dropdownSelector: '#dropdownStart', renderOn: 'end-date-changed' }"
+        data-on-set-time="startDateOnSetTime()"
+        data-before-render="startDateBeforeRender($dates)"></datetimepicker>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> 
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="tasksModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><span id="modal_title">{{title}}</span></h4>
+      </div>
+      <div class="modal-body" id="model_body">
+        <div ng-if="showingForm=='form_event'">
+          <div class="input-group">
+            <span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+            <input class="form-control" type="text" placeholder="Event Title" ng-model="_event.summary">
+          </div>
+          <div class="input-group">
+            <span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+            <input class="form-control" type="text" placeholder="Event Description" ng-model="_event.description">
+          </div>
+          <div class="input-group">
+            <span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+            <input class="form-control" type="text" placeholder="Event Location" ng-model="_event.location">
+          </div>
+          <div class="input-group">
+            <span class="input-group-addon"> <span class="glyphicon glyphicon-calendar"></span> </span>
+            <input class="form-control" type="text" placeholder="Event Time" name="event_daterange" mg-model="_event.daterange">
+          </div>
+          <div id="event_updated">Updated at: {{_event.updated}}</div>
+          <div id="event_reminider">Reminider: {{_event.reminder}}</div>
+          <input type="hidden" name="calendarId" ng-model="_event.iCalUID">
+          <input type="hidden" name="eventId" ng-model="_event.eventId">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div id="modal_msg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>

@@ -1,0 +1,216 @@
+
+<!-- Modal -->
+<div class="modal fade" id="assetsManageModal" ng-controller = "AssetsController" ng-init="init(modal.data)">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <button type="button" class="back" ng-click="pageback()">
+            <span class="glyphicon glyphicon-chevron-left"></span> 
+          </button>
+          <span class="button-group" role="group" ng-if="showingForm=='form_editAsset'">
+            Edit
+            <span class="pull-right">
+              <button class="btn btn-primary" ng-click="editAssetSubmit($event, _form)">Save</button>
+            </span>
+          </span>
+          <span class="button-group" role="group" ng-if="showingForm=='form_editBooking'">
+            Booking
+            <span class="pull-right">
+              <button class="btn btn-primary" ng-click="editBookingSubmit($event, _form)">Save</button>
+            </span>
+          </span>
+        </h4>
+      </div>
+      <!--end of modal-header-->
+
+      <div class="modal-body" id="model_body">
+
+        <div ng-if="showingForm=='form_addAsset'">
+          <h5>Add New Asset</h5>
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="Asset Name" ng-model="_form.new_name">
+            <span class="input-group-btn"><button ng-click="addAssetSubmit($event, _form)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+          </div>
+          <!--
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="Asset Type" ng-model="_form.type">
+            <span class="input-group-btn"><button ng-click="addAssetSubmit($event)" class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+          </div>
+        -->
+        <h5>Edit Asset</h5>
+        <div class="center-middle-text" ng-if="!assetlist.length" ng-click="getAssetList()">
+          <div>No Asset</div>
+        </div>
+        <div ng-repeat="asset in assetlist" ng-init="getAssetList()">
+          <div ng-include="'../templates/asset.html'"></div>
+        </div>
+        <!--
+        <div class="list-group" ng-init="getAssetList()">
+          <button ng-repeat="asset in assetlist" class="list-group-item" ng-click="editAsset(asset)">
+            <span class="glyphicon glyphicon-pencil"></span> {{asset.name}}
+          </button>
+        </div>
+      -->
+    </div>
+    <!--end of form_addAsset-->
+
+    <div ng-if="showingForm=='form_editAsset'">
+      <div class="row">
+        <div class="col-xs-12" style="text-align: center;">
+          <div class="button" ngf-select="imageCrop($file, {type:'assets', type_id:_form.asset_id})" ngf-pattern="'image/*'">
+            <img class="img-xl" ng-src="{{getImage(_form.img, '../img/book.png')}}">
+          </div>
+        </div>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-th-large"></span></span>
+        <input class="form-control" type="text" placeholder="Asset Name" ng-model="_form.name">
+        <span ng-click="_form.name = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+      </div>
+          <!--
+          <div class="input-group">
+            <span class="input-group-btn"><button class="btn btn-secondary glyphicon glyphicon-plus"></button></span>
+            <input class="form-control" type="button" placeholder="Asset Type" ng-model="_form.type">
+          </div>
+        -->
+        <h5>Add New Booking</h5>
+        <div class="input-group" ng-click="addBooking(_form)">
+          <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+          <input class="form-control" type="button" value="Add new Booking">
+          <span class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+        </div>
+        <h5>Bookings</h5>
+        <h4 ng-if="!_form.bookings" class="text-center" ng-init="getBookingList(_form)" ng-click="getBookingList(_form); $event.stopPropagation();"> Check Reservation </h4>
+        <div ng-if="_form.bookings">
+          <h4 ng-if="!_form.bookings.length" class="text-center" ng-click="getBookingList(_form); $event.stopPropagation();"> No Reservation </h4>
+          <div class="list-group" ng-if="_form.bookings.length">
+            <button class="list-group-item" ng-if="_form.bookings" ng-repeat="booking in _form.bookings | limitTo:10" ng-click="editBooking(booking)">
+              <ul class="list-group small">
+                <li class="list-group-item"> <span class="glyphicon glyphicon-th-large"></span> {{booking.summary}} </li>
+                <li class="list-group-item"> <span class="glyphicon glyphicon-calendar"></span> {{booking.start}} to {{booking.end}} </li>
+                <li class="list-group-item"> <span class="glyphicon glyphicon-user"></span> {{booking.created_by}} </li>
+              </ul>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!--end of form_editAsset-->
+
+      <div ng-if="showingForm=='form_viewAsset'">
+      </div>
+      <!--end of form_viewAsset-->
+
+      <div ng-if="showingForm=='form_viewBooking'">
+      </div>
+
+      <div ng-if="showingForm=='form_editBooking'">
+        <!--
+        <div class="input-group">
+          <input class="form-control" type="text" placeholder="Booking Priod" name="booking_daterange" ng-model="_form._booking.daterange" ng-init="dateRangePickerOnload(_form)" ng-change="daterangePickerOnChange(_form)">
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-calendar"></span>
+          </span>
+        </div>
+      -->
+      <h5>Asset Details</h5>
+      <div class="input-group">
+        <span class="input-group-addon"><i class="glyphicon glyphicon-th-large"></i></span>
+        <input class="form-control" type="text" placeholder="Asset Name" ng-model="_form.name" disabled="disabled">
+      </div>
+
+      <h5>Booking Details</h5>
+      <div class="dropdown form-group">
+        <a class="dropdown-toggle" id="dropdownStart" role="button" data-toggle="dropdown" data-target="" href="">
+          <div class="input-group date">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            <input type="text" class="form-control" placeholder="Start Date" ng-model="_form._booking.start" disabled="disabled">
+            <span ng-click="_form._booking.start = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+          </div>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <datetimepicker data-ng-model="_form._booking.start"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdownStart', renderOn: 'end-date-changed' }"
+          data-on-set-time="startDateOnSetTime(); listConflictedBooking(_form)"
+          data-before-render="startDateBeforeRender($dates)"></datetimepicker>
+        </ul>
+      </div>
+      <div class="dropdown form-group">
+        <a class="dropdown-toggle" id="dropdownEnd" role="button" data-toggle="dropdown" data-target="" href="">
+          <div class="input-group date">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            <input type="text" class="form-control" placeholder="End Date" ng-model="_form._booking.end" disabled="disabled">
+            <span ng-click="_form._booking.end = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+          </div>
+        </a>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <datetimepicker data-ng-model="_form._booking.end"
+          data-datetimepicker-config="{ dropdownSelector: '#dropdownEnd', renderOn: 'start-date-changed' }"
+          data-on-set-time="endDateOnSetTime(); listConflictedBooking(_form)"
+          data-before-render="endDateBeforeRender($view, $dates, $leftDate, $upDate, $rightDate)"></datetimepicker>
+        </ul>
+      </div>
+
+      <div ng-if="_form._booking.conflicted.length>0">
+        <h5>Conflicted bookings</h5>
+        <div class="list-group">
+          <button class="list-group-item" ng-repeat="conflicted in _form._booking.conflicted">
+            <ul class="list-group small">
+              <li class="list-group-item"> <span class="glyphicon glyphicon-th-large"></span> {{conflicted.summary}} </li>
+              <li class="list-group-item"> <span class="glyphicon glyphicon-calendar"></span> {{conflicted.start}} to {{conflicted.end}} </li>
+              <li class="list-group-item"> <span class="glyphicon glyphicon-user"></span> {{conflicted.created_by}} </li>
+            </ul>
+          </button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-th-large"></span></span>
+        <input class="form-control" type="text" placeholder="Booking summary" ng-model="_form._booking.summary">
+        <span ng-click="_form._booking.summary = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-tag"></span></span>
+        <input class="form-control" type="text" placeholder="Booking remarks" ng-model="_form._booking.remarks">
+        <span ng-click="_form._booking.remarks = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-star-empty"></span></span>
+        <input class="form-control" type="text" placeholder="Booking reminder" ng-model="_form._booking.reminder">
+        <span ng-click="_form._booking.reminder = null" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+      </div>
+      <h5>Booking user list</h5>
+      <div class="input-group">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+        <input class="form-control" type="text" placeholder="Add Booking User List" ng-model="_form._booking.user">
+        <span ng-click="_form._booking.userlist.push(_form._booking.user); _form._booking.user = null;" class="input-group-addon"><span class="glyphicon glyphicon-plus"></span></span>
+      </div>
+      <div class="input-group" ng-repeat="user in _form._booking.userlist">
+        <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+        <input class="form-control" type="text" value="{{user}}" disabled="disabled">
+        <span ng-click="_form._booking.userlist.splice(_form._booking.userlist.indexOf(user), 1)" class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+      </div>
+    </div>
+
+  </div>
+  <!--end of modal-body-->
+
+  <div class="modal-footer">
+    <div class="button-group" role="group" ng-if="showingForm=='form_editAsset'">
+      <button class="btn btn-warning" ng-click="deleteAssetSubmit($event, _form)">Remove this asset</button>
+      <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+    </div>
+    <div class="button-group" role="group" ng-if="showingForm=='form_editBooking'">
+      <button class="btn btn-warning" ng-click="deleteBookingSubmit($event, _form)">Remove this booking</button>
+      <button class="btn btn-default" ng-click="closeModal()">Cancel</button>
+    </div>
+    <div id="modal_msg"></div>
+  </div>
+  <!--end of modal-footer-->
+
+</div>
+<!-- /modal-content -->
+</div>
+</div>
+<!--end of modal-->

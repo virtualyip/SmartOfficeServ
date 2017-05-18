@@ -1,0 +1,21 @@
+<div class="col-lg-3 col-sm-6 col-xs-6">
+  <div class="panel panel-info">
+    <div class="panel-body" ng-click="showUser(user)" style="padding: 5px">
+      <table><tr>
+        <td class="align-middle" width="100%">
+          <h2 ng-if="!chat" class="text-center">No Chat</h2>
+
+          <ul class="list-group" style="padding: 0px; margin: 0px">
+            <li class="list-group-item" style="padding: 2px 5px;"><span class="glyphicon glyphicon-user"></span> {{chat.message}}</li>
+          </ul>
+        </td>
+      </tr></table>
+    </div>
+    <div class="panel-footer">
+      <div class="input-group">
+        <input type="text" class="form-control" ng-model="chat.message">
+        <span class="input-group-addon"> <span class="glyphicon glyphicon-pencil"></span> </span>
+      </div>
+    </div>
+  </div>
+</div>
